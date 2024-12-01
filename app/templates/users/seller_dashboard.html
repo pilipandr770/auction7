@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кабінет Продавця</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/">Головна</a></li>
+                <li><a href="/auth/logout">Вихід</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="seller-info">
+            <h1>Кабінет Продавця</h1>
+            <p>Ім'я користувача: {{ user.username }}</p>
+            <p>Баланс: {{ user.balance }} €</p>
+        </section>
+
+        <section class="create-auction">
+            <h2>Створити новий аукціон</h2>
+            <form action="/auction/create" method="POST">
+                <label for="title">Назва:</label>
+                <input type="text" name="title" id="title" required>
+                <label for="description">Опис:</label>
+                <textarea name="description" id="description" required></textarea>
+                <label for="starting_price">Початкова ціна:</label>
+                <input type="number" name="starting_price" id="starting_price" required>
+                <button type="submit">Створити аукціон</button>
+            </form>
+        </section>
+
+        <section class="my-auctions">
+            <h2>Ваші аукціони</h2>
+            <ul>
+                {% for auction in user.auctions %}
+                <li>
+                    <h3>{{ auction.title }}</h3>
+                    <p>Поточна ціна: {{ auction.current_price }} €</p>
+                    <button onclick="window.location.href='/auction/{{ auction.id }}'">Деталі</button>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Аукціонний Застосунок. Всі права захищені.</p>
+    </footer>
+</body>
+
+</html>

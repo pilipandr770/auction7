@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Створення Аукціону</title>
+</head>
+
+<body>
+    <h1>Створення Аукціону</h1>
+    <form action="/auctions/create" method="POST">
+        <label for="name">Назва аукціону:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="description">Опис:</label>
+        <textarea id="description" name="description" required></textarea>
+        <br>
+        <button type="submit">Створити</button>
+    </form>
+</body>
+
+</html>
