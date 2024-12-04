@@ -1,59 +1,68 @@
-# routes/auth_routes.py
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, request, render_template, redirect, url_for, flash
+from flask_login import login_user, logout_user
 from app.models.user import User
 from app import db
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'GET':
-        # Вказуємо правильний шлях до шаблону
-        return render_template('auth/register.html')
-
-    data = request.get_json() if request.is_json else request.form
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    user_type = data.get('user_type')  # Тип користувача: buyer або seller
-
-    if not user_type or user_type not in ['buyer', 'seller']:
-        return render_template('auth/register.html', error="Невірний тип користувача. Має бути 'buyer' або 'seller'")
-
-    if User.query.filter_by(email=email).first() is not None:
-        return render_template('auth/register.html', error="Користувач із такою електронною адресою вже існує")
-
-    hashed_password = generate_password_hash(password)
-    new_user = User(username=username, email=email, password=hashed_password, user_type=user_type)
-    db.session.add(new_user)
-    db.session.commit()
-    return redirect(url_for('auth.login'))
-
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'GET':
-        # Вказуємо правильний шлях до шаблону
-        return render_template('auth/login.html')
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
 
-    data = request.get_json() if request.is_json else request.form
-    email = data.get('email')
-    password = data.get('password')
+        # Перевірка користувача
+        user = User.query.filter_by(email=email).first()
 
-    # Знайти користувача в базі даних за електронною поштою
-    user = User.query.filter_by(email=email).first()
+        if not user or not user.check_password(password):
+            flash("Неправильний email або пароль", 'error')
+            return redirect(url_for('auth.login'))
 
-    if user and user.check_password(password):
-        # Якщо все вірно, перенаправляємо залежно від типу користувача
-        if user.user_type == 'buyer':
-            return render_template('users/buyer_dashboard.html', user=user)
+        # Авторизація користувача
+        login_user(user)
+        flash("Успішний вхід", 'success')
+
+        # Перевірка типу користувача (user_type)
+        if user.user_type == "seller":
+            return redirect(url_for('user.seller_dashboard', email=user.email))
+        elif user.user_type == "buyer":
+            return redirect(url_for('user.buyer_dashboard', email=user.email))
         else:
-            return render_template('users/seller_dashboard.html', user=user)
+            flash("Роль користувача невизначена", 'error')
+            return redirect(url_for('auth.login'))
 
-    return render_template('auth/login.html', error="Неправильний email або пароль"), 401
+    return render_template('auth/login.html')
 
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user_type = request.form.get('user_type')  # "seller" або "buyer"
 
-@auth_bp.route('/logout', methods=['GET', 'POST'])
+        if not email or not username or not password or not user_type:
+            flash("Усі поля обов'язкові", 'error')
+            return redirect(url_for('auth.register'))
+
+        # Перевірка, чи email вже існує
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Користувач із таким email вже існує", 'error')
+            return redirect(url_for('auth.register'))
+
+        # Створення нового користувача
+        user = User(username=username, email=email, password=password, user_type=user_type)
+        db.session.add(user)
+        db.session.commit()
+
+        flash("Реєстрація успішна", 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/register.html')
+
+@auth_bp.route('/logout', methods=['GET'])
 def logout():
-    # Простий маршрут для імітації виходу
+    logout_user()
+    flash("Ви успішно вийшли з системи", 'success')
     return redirect(url_for('auth.login'))

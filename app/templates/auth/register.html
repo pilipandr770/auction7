@@ -6,11 +6,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Реєстрація</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
 <body>
     <h2>Реєстрація</h2>
-    <form action="/auth/register" method="post">
+
+    <!-- Відображення повідомлень з `flash` -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul>
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('auth.register') }}" method="post">
         <label for="username">Ім'я користувача:</label>
         <input type="text" id="username" name="username" required><br><br>
 
@@ -28,6 +41,8 @@
 
         <input type="submit" value="Зареєструватися">
     </form>
+
+    <a href="{{ url_for('auth.login') }}">Вже зареєстровані? Увійти</a>
 </body>
 
 </html>

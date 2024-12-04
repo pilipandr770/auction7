@@ -1,54 +1,62 @@
+<!-- templates/users/seller_dashboard.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кабінет Продавця</title>
+    <title>Кабінет продавця</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
 <body>
     <header>
+        <h1>Кабінет продавця</h1>
         <nav>
             <ul>
                 <li><a href="/">Головна</a></li>
-                <li><a href="/auth/logout">Вихід</a></li>
+                <li><a href="/auth/logout">Вийти</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <section class="seller-info">
-            <h1>Кабінет Продавця</h1>
-            <p>Ім'я користувача: {{ user.username }}</p>
-            <p>Баланс: {{ user.balance }} €</p>
+        <section class="user-info">
+            <h2>Інформація про продавця</h2>
+            <p><strong>Ім'я користувача:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Баланс:</strong> {{ user.balance }} грн</p>
         </section>
 
         <section class="create-auction">
             <h2>Створити новий аукціон</h2>
             <form action="/auction/create" method="POST">
                 <label for="title">Назва:</label>
-                <input type="text" name="title" id="title" required>
+                <input type="text" id="title" name="title" required>
                 <label for="description">Опис:</label>
-                <textarea name="description" id="description" required></textarea>
+                <textarea id="description" name="description" required></textarea>
                 <label for="starting_price">Початкова ціна:</label>
-                <input type="number" name="starting_price" id="starting_price" required>
+                <input type="number" id="starting_price" name="starting_price" required>
                 <button type="submit">Створити аукціон</button>
             </form>
         </section>
 
-        <section class="my-auctions">
-            <h2>Ваші аукціони</h2>
+        <section class="auctions">
+            <h2>Мої аукціони</h2>
+            {% if auctions %}
             <ul>
-                {% for auction in user.auctions %}
+                {% for auction in auctions %}
                 <li>
                     <h3>{{ auction.title }}</h3>
-                    <p>Поточна ціна: {{ auction.current_price }} €</p>
-                    <button onclick="window.location.href='/auction/{{ auction.id }}'">Деталі</button>
+                    <p>{{ auction.description }}</p>
+                    <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+                    <p><strong>Статус:</strong> {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
                 </li>
                 {% endfor %}
             </ul>
+            {% else %}
+            <p>У вас ще немає створених аукціонів.</p>
+            {% endif %}
         </section>
     </main>
 

@@ -1,15 +1,25 @@
 # models/auction.py
+from app import db
 
-class Auction:
+class Auction(db.Model):
+    __tablename__ = 'auctions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    starting_price = db.Column(db.Float, nullable=False)
+    current_price = db.Column(db.Float, nullable=False)
+    seller_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    total_participants = db.Column(db.Integer, default=0, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    winner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
     def __init__(self, title, description, starting_price, seller_id):
         self.title = title
         self.description = description
         self.starting_price = starting_price
         self.current_price = starting_price
         self.seller_id = seller_id
-        self.total_participants = 0
-        self.is_active = True
-        self.winner_id = None
 
     def add_participant(self):
         """Метод для додавання нового учасника до аукціону."""
@@ -25,4 +35,4 @@ class Auction:
     def close_auction(self, winner_id=None):
         """Метод для закриття аукціону."""
         self.is_active = False
-        self.winner_id = winner_id if winner_id else None
+        self.winner_id = winner_id
