@@ -1,80 +1,69 @@
 # routes/user_routes.py
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, request, jsonify, redirect, url_for, flash, render_template
 from flask_login import login_required, current_user
-from werkzeug.security import generate_password_hash
 from app import db
-from app.services.payment_service import PaymentService
 from app.models.user import User
+from app.models.auction import Auction  # Імпортуємо модель Auction
 
 user_bp = Blueprint('user', __name__)
 
 @user_bp.route('/add_balance', methods=['POST'])
 @login_required
 def add_balance():
+    print(f"Поточний користувач: {current_user.email}")  # Діагностика автентифікації
     data = request.get_json()
-    if not data:
-        return jsonify({"message": "Необхідний формат запиту JSON"}), 400
 
-    user_email = current_user.email  # Використовуємо email поточного користувача
-    amount = data.get('amount')
+    if not data or 'amount' not in data:
+        return jsonify({"error": "Некоректний формат запиту"}), 400
 
-    response, status_code = PaymentService.add_balance(user_email, amount)
-    return jsonify(response), status_code
+    try:
+        amount = float(data['amount'])
+        if amount <= 0:
+            return jsonify({"error": "Сума має бути більше 0"}), 400
+
+        user = User.query.filter_by(email=current_user.email).first()
+        if not user:
+            return jsonify({"error": "Користувача не знайдено"}), 404
+
+        user.balance += amount
+        db.session.commit()
+
+        return jsonify({"message": "Баланс успішно поповнено!", "new_balance": user.balance}), 200
+    except ValueError:
+        return jsonify({"error": "Некоректна сума"}), 400
+    except Exception as e:
+        print(f"Помилка: {e}")
+        return jsonify({"error": "Не вдалося поповнити баланс."}), 500
 
 @user_bp.route('/buyer/<string:email>', methods=['GET'])
 @login_required
 def buyer_dashboard(email):
     if current_user.email != email:
-        return jsonify({"message": "Неавторизований доступ"}), 403
+        flash("Неавторизований доступ", 'error')
+        return redirect(url_for('auth.login'))
 
     user = User.query.filter_by(email=email).first()
     if not user:
-        return jsonify({"message": "Користувача не знайдено"}), 404
+        flash("Користувача не знайдено", 'error')
+        return redirect(url_for('auth.login'))
 
-    return jsonify({
-        "username": user.username,
-        "email": user.email,
-        "balance": user.balance,
-        "role": "buyer"
-    }), 200
+    return render_template('users/buyer_dashboard.html', user=user)
 
 @user_bp.route('/seller/<string:email>', methods=['GET'])
 @login_required
 def seller_dashboard(email):
     if current_user.email != email:
-        return jsonify({"message": "Неавторизований доступ"}), 403
+        flash("Неавторизований доступ", 'error')
+        return redirect(url_for('auth.login'))
 
     user = User.query.filter_by(email=email).first()
     if not user:
-        return jsonify({"message": "Користувача не знайдено"}), 404
+        flash("Користувача не знайдено", 'error')
+        return redirect(url_for('auth.login'))
 
-    return jsonify({
-        "username": user.username,
-        "email": user.email,
-        "balance": user.balance,
-        "role": "seller"
-    }), 200
+    # Додаємо логіку для отримання аукціонів поточного продавця
+    auctions = Auction.query.filter_by(seller_id=user.id).all()
 
-@user_bp.route('/update_profile/<string:email>', methods=['PUT'])
-@login_required
-def update_profile(email):
-    if current_user.email != email:
-        return jsonify({"message": "Неавторизований доступ"}), 403
+    return render_template('users/seller_dashboard.html', user=user, auctions=auctions)
 
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify({"message": "Користувача не знайдено"}), 404
-
-    data = request.get_json()
-    username = data.get('username')
-    new_password = data.get('password')
-
-    if username:
-        user.username = username
-    if new_password:
-        user.password_hash = generate_password_hash(new_password)
-
-    # Зберігаємо зміни в базі даних
-    db.session.commit()
-
-    return jsonify({"message": "Профіль успішно оновлено"}), 200

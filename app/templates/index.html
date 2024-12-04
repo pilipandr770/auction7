@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 
 <head>
     <meta charset="UTF-8">
@@ -38,6 +38,23 @@
                 <li>Безпечні та надійні платежі.</li>
                 <li>Можливість для продавців створювати аукціони і привертати увагу покупців.</li>
             </ul>
+        </section>
+
+        <section class="auctions">
+            <h2>Активні аукціони:</h2>
+            {% if auctions %}
+            <ul>
+                {% for auction in auctions %}
+                <li>
+                    <h3>{{ auction.title }}</h3>
+                    <p>{{ auction.description }}</p>
+                    <p>Поточна ціна: {{ auction.current_price }} грн</p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>На даний момент немає активних аукціонів.</p>
+            {% endif %}
         </section>
     </main>
 

@@ -1,27 +1,62 @@
-# routes/auction_routes.py
-from flask import Blueprint, request, jsonify
-from app.services.payment_service import PaymentService  # Імпортуємо клас PaymentService
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from app import db
 from app.models.auction import Auction
+from app.models.user import User
 
 auction_bp = Blueprint('auction', __name__)
 
 @auction_bp.route('/create', methods=['POST'])
+@login_required
 def create_auction():
-    # Приклад створення нового аукціону
-    data = request.get_json()
-    auction_name = data.get('auction_name')
-    start_price = data.get('start_price')
+    if current_user.user_type != 'seller':
+        return jsonify({"error": "Тільки продавці можуть створювати аукціони"}), 403
 
-    new_auction = Auction(name=auction_name, start_price=start_price)
-    # Зберігаємо аукціон у базі даних тут
-    return jsonify({"message": f"Новий аукціон '{auction_name}' створено!"}), 201
+    data = request.form
+    title = data.get('title')
+    description = data.get('description')
+    starting_price = data.get('starting_price')
 
-@auction_bp.route('/pay_entry', methods=['POST'])
-def pay_entry():
-    data = request.get_json()
-    user_email = data.get('user_email')
-    auction_id = data.get('auction_id')
-    amount = data.get('amount')
+    if not title or not description or not starting_price:
+        return jsonify({"error": "Усі поля обов'язкові"}), 400
 
-    response, status_code = PaymentService.process_entry_payment(user_email, auction_id, amount)
-    return jsonify(response), status_code
+    try:
+        starting_price = float(starting_price)
+    except ValueError:
+        return jsonify({"error": "Ціна повинна бути числом"}), 400
+
+    new_auction = Auction(
+        title=title,
+        description=description,
+        starting_price=starting_price,
+        seller_id=current_user.id
+    )
+
+    db.session.add(new_auction)
+    db.session.commit()
+
+    flash("Аукціон успішно створено", "success")
+    return redirect(url_for('user.seller_dashboard', email=current_user.email))
+
+@auction_bp.route('/list', methods=['GET'])
+def list_auctions():
+    auctions = Auction.query.filter_by(is_active=True).all()
+    return render_template('index.html', auctions=auctions)
+
+@auction_bp.route('/seller', methods=['GET'])
+@login_required
+def seller_auctions():
+    if current_user.user_type != 'seller':
+        return redirect(url_for('auth.login'))
+
+    auctions = Auction.query.filter_by(seller_id=current_user.id).all()
+    return render_template('users/seller_dashboard.html', auctions=auctions)
+
+@auction_bp.route('/buyer', methods=['GET'])
+@login_required
+def buyer_auctions():
+    if current_user.user_type != 'buyer':
+        return redirect(url_for('auth.login'))
+
+    auctions = Auction.query.filter_by(is_active=True).all()
+    return render_template('users/buyer_dashboard.html', auctions=auctions)
