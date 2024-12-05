@@ -48,7 +48,8 @@ def buyer_dashboard(email):
         flash("Користувача не знайдено", 'error')
         return redirect(url_for('auth.login'))
 
-    return render_template('users/buyer_dashboard.html', user=user)
+    auctions = Auction.query.filter_by(is_active=True).all()  # Отримуємо всі активні аукціони
+    return render_template('users/buyer_dashboard.html', user=user, auctions=auctions)
 
 @user_bp.route('/seller/<string:email>', methods=['GET'])
 @login_required
@@ -66,4 +67,41 @@ def seller_dashboard(email):
     auctions = Auction.query.filter_by(seller_id=user.id).all()
 
     return render_template('users/seller_dashboard.html', user=user, auctions=auctions)
+
+@user_bp.route('/participate/<int:auction_id>', methods=['POST'])
+@login_required
+def participate_in_auction(auction_id):
+    auction = Auction.query.get(auction_id)
+    if not auction or not auction.is_active:
+        return jsonify({"error": "Аукціон не знайдено або вже закритий"}), 400
+
+    ticket_price = 10  # Фіксована вартість квитка
+    if current_user.balance < ticket_price:
+        return jsonify({"error": "Недостатньо коштів на балансі"}), 400
+
+    # Списуємо гроші з балансу покупця
+    current_user.balance -= ticket_price
+
+    # Додаємо гроші на баланс продавця
+    seller = User.query.get(auction.seller_id)
+    if seller:
+        seller.balance += ticket_price
+
+    # Збільшуємо кількість учасників
+    auction.total_participants += 1
+
+    # Оновлюємо поточну ціну
+    auction.current_price -= ticket_price
+    if auction.current_price <= 0:
+        auction.current_price = 0
+        auction.is_active = False  # Закриваємо аукціон
+
+    db.session.commit()
+
+    # Повертаємо інформацію для 5-секундного перегляду
+    return jsonify({
+        "message": "Успішно взято участь!",
+        "participants": auction.total_participants,
+        "final_price": auction.current_price
+    }), 200
 
