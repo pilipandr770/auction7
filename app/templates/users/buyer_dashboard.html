@@ -20,6 +20,26 @@
         <button type="submit">Поповнити баланс</button>
     </form>
 
+    <!-- Список наявних аукціонів -->
+    <h2>Доступні аукціони</h2>
+    {% if auctions %}
+    <ul>
+        {% for auction in auctions %}
+        <li>
+            <strong>{{ auction.title }}</strong> - {{ auction.description }}
+            <p>Початкова ціна: {{ auction.starting_price }} грн</p>
+            <p>Статус: {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
+            {% if auction.is_active %}
+            <button class="participate-button" data-auction-id="{{ auction.id }}">Взяти участь</button>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Немає доступних аукціонів.</p>
+    {% endif %}
+
+    <!-- JavaScript для поповнення балансу -->
     <script>
         document.getElementById('add-balance-form').addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -47,6 +67,34 @@
                 console.error('Помилка:', error);
                 alert('Не вдалося поповнити баланс. Спробуйте пізніше.');
             }
+        });
+
+        // JavaScript для участі в аукціоні
+        document.querySelectorAll('.participate-button').forEach(button => {
+            button.addEventListener('click', async function () {
+                const auctionId = this.getAttribute('data-auction-id');
+
+                try {
+                    const response = await fetch(`/participate/${auctionId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        alert(`Успішно взято участь!\nУчасників: ${data.participants}\nОстаточна ціна: ${data.final_price} грн`);
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Помилка: ${errorData.error}`);
+                    }
+                } catch (error) {
+                    console.error('Помилка:', error);
+                    alert('Не вдалося взяти участь у аукціоні. Спробуйте пізніше.');
+                }
+            });
         });
     </script>
 
