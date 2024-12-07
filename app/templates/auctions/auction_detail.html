@@ -1,15 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Деталі Аукціону</title>
+    <title>Деталі аукціону</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
 <body>
-    <h1>Деталі Аукціону</h1>
-    <p>Інформація про вибраний аукціон...</p>
+    <h1>Деталі аукціону</h1>
+    <h2>{{ auction.title }}</h2>
+    <p><strong>Опис:</strong> {{ auction.description }}</p>
+    <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+    <p><strong>Поточна ціна:</strong> {{ auction.current_price }} грн</p>
+    <p><strong>Кількість учасників:</strong> {{ auction.total_participants }}</p>
+    <p><strong>Статус:</strong> {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
+
+    {% if auction.is_active %}
+    <form method="POST">
+        <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.1 | round(2) }} грн</p>
+        <button type="submit">Взяти участь</button>
+    </form>
+    <p><strong>Попередження:</strong> Після участі дані про кількість учасників і поточну ціну будуть доступні лише на 5
+        секунд.</p>
+    {% else %}
+    <p>Цей аукціон завершено.</p>
+    {% endif %}
+
+    <a href="/user/buyer/{{ current_user.email }}">Повернутися до кабінету</a>
+
+    <script>
+        // Отримуємо змінну з атрибутів data-* 
+        const wasPostMethod = document.body.dataset.wasPost === "true";
+
+        if (wasPostMethod) {
+            setTimeout(function () {
+                // Очищення вмісту сторінки
+                document.body.innerHTML = `
+                    <h1>Доступ до деталей завершено</h1>
+                    <p>Деталі аукціону більше недоступні.</p>
+                    <a href="/user/buyer/{{ current_user.email }}">Повернутися до кабінету</a>
+                `;
+            }, 5000);
+        }
+    </script>
 </body>
 
 </html>
