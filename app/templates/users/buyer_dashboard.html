@@ -30,7 +30,7 @@
             <p>Початкова ціна: {{ auction.starting_price }} грн</p>
             <p>Статус: {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
             {% if auction.is_active %}
-            <button class="participate-button" data-auction-id="{{ auction.id }}">Взяти участь</button>
+            <a href="/auction/{{ auction.id }}" class="participate-link">Деталі та участь</a>
             {% endif %}
         </li>
         {% endfor %}
@@ -67,34 +67,6 @@
                 console.error('Помилка:', error);
                 alert('Не вдалося поповнити баланс. Спробуйте пізніше.');
             }
-        });
-
-        // JavaScript для участі в аукціоні
-        document.querySelectorAll('.participate-button').forEach(button => {
-            button.addEventListener('click', async function () {
-                const auctionId = this.getAttribute('data-auction-id');
-
-                try {
-                    const response = await fetch(`/participate/${auctionId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        credentials: 'include'
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        alert(`Успішно взято участь!\nУчасників: ${data.participants}\nОстаточна ціна: ${data.final_price} грн`);
-                    } else {
-                        const errorData = await response.json();
-                        alert(`Помилка: ${errorData.error}`);
-                    }
-                } catch (error) {
-                    console.error('Помилка:', error);
-                    alert('Не вдалося взяти участь у аукціоні. Спробуйте пізніше.');
-                }
-            });
         });
     </script>
 

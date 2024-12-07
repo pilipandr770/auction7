@@ -48,7 +48,7 @@ def buyer_dashboard(email):
         flash("Користувача не знайдено", 'error')
         return redirect(url_for('auth.login'))
 
-    auctions = Auction.query.filter_by(is_active=True).all()  # Отримуємо всі активні аукціони
+    auctions = Auction.query.filter_by(is_active=True).all()  # Доступні аукціони
     return render_template('users/buyer_dashboard.html', user=user, auctions=auctions)
 
 @user_bp.route('/seller/<string:email>', methods=['GET'])
