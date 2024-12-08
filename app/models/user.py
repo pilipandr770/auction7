@@ -1,8 +1,6 @@
-# models/user.py
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'  # Додано ім'я таблиці для ясності
@@ -17,6 +15,7 @@ class User(UserMixin, db.Model):
     # Встановлення зв'язків із таблицею аукціонів
     auctions_created = db.relationship('Auction', foreign_keys='Auction.seller_id', backref='seller', lazy=True)
     auctions_won = db.relationship('Auction', foreign_keys='Auction.winner_id', backref='winner', lazy=True)
+    auction_participations = db.relationship('AuctionParticipant', back_populates='user', lazy=True)
 
     def __init__(self, username, email, password, user_type):
         self.username = username
@@ -36,3 +35,21 @@ class User(UserMixin, db.Model):
     def get_id(self):
         """Повертає унікальний ідентифікатор користувача як рядок."""
         return str(self.id)
+
+    def can_afford(self, amount):
+        """
+        Перевіряє, чи вистачає коштів на балансі для певної операції.
+        :param amount: Сума для перевірки.
+        :return: True, якщо вистачає, False - якщо ні.
+        """
+        return self.balance >= amount
+
+    def deduct_balance(self, amount):
+        """
+        Віднімає певну суму з балансу користувача.
+        :param amount: Сума для віднімання.
+        """
+        if self.can_afford(amount):
+            self.balance -= amount
+        else:
+            raise ValueError("Недостатньо коштів на балансі.")

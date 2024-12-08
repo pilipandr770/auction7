@@ -26,9 +26,10 @@
     <section class="participate">
         {% if auction.is_active %}
         <form id="participate-form" method="POST">
-            <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.1 }} грн</p>
+            <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.01 }} грн</p>
             <button type="submit">Взяти участь</button>
         </form>
+        <button id="view-details-btn">Переглянути поточну ціну (1.00 €)</button>
         {% else %}
         <p>Цей аукціон завершено.</p>
         {% endif %}
@@ -42,6 +43,7 @@
 </main>
 
 <script>
+    // Обробка участі в аукціоні
     document.getElementById('participate-form')?.addEventListener('submit', async function (e) {
         e.preventDefault();
 
@@ -73,6 +75,39 @@
         } catch (error) {
             console.error('Помилка:', error);
             alert('Не вдалося взяти участь в аукціоні. Спробуйте пізніше.');
+        }
+    });
+
+    // Обробка перегляду деталей аукціону
+    document.getElementById('view-details-btn')?.addEventListener('click', async function () {
+        try {
+            const response = await fetch(`/auction/view/{{ auction.id }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('participants-count').textContent = data.participants;
+                document.getElementById('current-price').textContent = data.final_price;
+
+                const auctionDetails = document.getElementById('auction-details');
+                auctionDetails.style.display = 'block';
+
+                // Ховаємо інформацію через 5 секунд
+                setTimeout(() => {
+                    auctionDetails.style.display = 'none';
+                }, 5000);
+            } else {
+                const errorData = await response.json();
+                alert(`Помилка: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Помилка:', error);
+            alert('Не вдалося оновити перегляд. Спробуйте пізніше.');
         }
     });
 </script>

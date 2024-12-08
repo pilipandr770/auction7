@@ -3,8 +3,10 @@ from flask_login import login_required, current_user
 from app import db
 from app.models.auction import Auction
 from app.models.user import User
+from app.models.auction_participant import AuctionParticipant
 
 auction_bp = Blueprint('auction', __name__)
+
 
 @auction_bp.route('/create', methods=['POST'])
 @login_required
@@ -59,20 +61,25 @@ def auction_detail(auction_id):
     if request.method == 'POST':
         try:
             entry_price = auction.starting_price * 0.01  # Вхідна ціна (1% від початкової ціни)
-            buyer = User.query.get(current_user.id)
+            participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
 
+            if participant and participant.has_paid_entry:
+                return jsonify({"error": "Ви вже сплатили за участь в цьому аукціоні"}), 400
+
+            if current_user.balance < entry_price:
+                return jsonify({"error": "Недостатньо коштів на балансі"}), 400
+
+            buyer = User.query.get(current_user.id)
             if not buyer:
                 return jsonify({"error": "Користувача не знайдено"}), 404
 
-            if buyer.balance < entry_price:
-                return jsonify({"error": "Недостатньо коштів на балансі"}), 400
-
-            # Оновлення даних аукціону
-            buyer.balance -= entry_price
             seller = User.query.get(auction.seller_id)
+            if not seller:
+                return jsonify({"error": "Продавця не знайдено"}), 404
 
-            if seller:
-                seller.balance += entry_price
+            # Оновлення даних
+            buyer.balance -= entry_price
+            seller.balance += entry_price
 
             auction.total_participants += 1
             auction.current_price -= entry_price
@@ -80,6 +87,12 @@ def auction_detail(auction_id):
             if auction.current_price <= 0:
                 auction.current_price = 0
                 auction.is_active = False  # Закриваємо аукціон
+
+            if not participant:
+                participant = AuctionParticipant(auction_id=auction_id, user_id=current_user.id)
+                db.session.add(participant)
+
+            participant.mark_paid_entry()
 
             db.session.commit()
 
@@ -97,9 +110,9 @@ def auction_detail(auction_id):
     return render_template('auctions/auction_detail.html', auction=auction)
 
 
-@auction_bp.route('/participate/<int:auction_id>', methods=['POST'])
+@auction_bp.route('/view/<int:auction_id>', methods=['POST'])
 @login_required
-def participate_in_auction(auction_id):
+def view_auction(auction_id):
     auction = Auction.query.get(auction_id)
     if not auction:
         return jsonify({"error": "Аукціон не знайдено"}), 404
@@ -107,33 +120,37 @@ def participate_in_auction(auction_id):
     if not auction.is_active:
         return jsonify({"error": "Аукціон вже закритий"}), 400
 
-    ticket_price = auction.starting_price * 0.01
     try:
-        if current_user.balance < ticket_price:
-            return jsonify({"error": "Недостатньо коштів на балансі"}), 400
+        view_price = 1.0  # Вартість перегляду
+        participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
 
-        seller = User.query.get(auction.seller_id)
-        if not seller:
-            return jsonify({"error": "Продавця не знайдено"}), 404
+        if participant and participant.has_viewed_price:
+            return jsonify({"message": "Ви вже переглядали поточну ціну", 
+                            "participants": auction.total_participants,
+                            "final_price": auction.current_price}), 200
 
-        current_user.balance -= ticket_price
-        seller.balance += ticket_price
+        if current_user.balance < view_price:
+            return jsonify({"error": "Недостатньо коштів на балансі для перегляду"}), 400
 
-        auction.total_participants += 1
-        auction.current_price -= ticket_price
+        # Оновлюємо баланс користувача та аукціону
+        current_user.balance -= view_price
+        auction.add_to_earnings(view_price)
 
-        if auction.current_price <= 0:
-            auction.current_price = 0
-            auction.is_active = False
+        if not participant:
+            participant = AuctionParticipant(auction_id=auction_id, user_id=current_user.id)
+            db.session.add(participant)
+
+        participant.mark_viewed_price()
 
         db.session.commit()
 
         return jsonify({
-            "message": "Успішно взято участь!",
+            "message": "Перегляд оновлений",
             "participants": auction.total_participants,
             "final_price": auction.current_price
         }), 200
+
     except Exception as e:
         db.session.rollback()
-        print(f"Помилка участі в аукціоні: {e}")
-        return jsonify({"error": "Не вдалося взяти участь в аукціоні"}), 500
+        print(f"Помилка перегляду аукціону: {e}")
+        return jsonify({"error": "Не вдалося оновити перегляд"}), 500

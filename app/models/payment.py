@@ -1,13 +1,14 @@
-# models/payment.py
 from app import db
 
 class Payment(db.Model):
+    __tablename__ = 'payments'  # Додано ім'я таблиці для ясності
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    auction_id = db.Column(db.Integer, nullable=False)  # Можна створити ForeignKey, якщо є відповідна модель аукціону
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Виправлено назву таблиці
+    auction_id = db.Column(db.Integer, db.ForeignKey('auctions.id'), nullable=False)  # Додано ForeignKey
     amount = db.Column(db.Float, nullable=False)
-    purpose = db.Column(db.String(50), nullable=False)  # Може бути 'entry_fee' або 'view_info'
-    recipient = db.Column(db.String(50), nullable=False)  # Може бути 'seller' або 'platform'
+    purpose = db.Column(db.String(50), nullable=False)  # Наприклад, 'entry_fee' або 'view_info'
+    recipient = db.Column(db.String(50), nullable=False)  # Наприклад, 'seller' або 'platform'
     is_processed = db.Column(db.Boolean, default=False)
 
     def __init__(self, user_id, auction_id, amount, purpose, recipient):
@@ -20,6 +21,6 @@ class Payment(db.Model):
 
     def process_payment(self):
         """Метод для обробки платежу."""
-        # В майбутньому тут можна додати логіку інтеграції з реальною платіжною системою
+        # У майбутньому можна додати інтеграцію з реальною платіжною системою
         self.is_processed = True
         db.session.commit()
