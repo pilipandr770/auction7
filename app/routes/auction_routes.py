@@ -58,7 +58,7 @@ def auction_detail(auction_id):
 
     if request.method == 'POST':
         try:
-            entry_price = auction.starting_price * 0.1  # Вхідна ціна (10% від початкової ціни)
+            entry_price = auction.starting_price * 0.01  # Вхідна ціна (1% від початкової ціни)
             buyer = User.query.get(current_user.id)
 
             if not buyer:
@@ -107,7 +107,7 @@ def participate_in_auction(auction_id):
     if not auction.is_active:
         return jsonify({"error": "Аукціон вже закритий"}), 400
 
-    ticket_price = auction.starting_price * 0.1
+    ticket_price = auction.starting_price * 0.01
     try:
         if current_user.balance < ticket_price:
             return jsonify({"error": "Недостатньо коштів на балансі"}), 400
