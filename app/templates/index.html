@@ -1,66 +1,42 @@
-<!DOCTYPE html>
-<html lang="uk">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Головна сторінка - Аукціонний Застосунок</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
+{% block title %}Головна сторінка - Аукціонний Застосунок{% endblock %}
 
-<body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="/">Головна</a></li>
-                <li><a href="/auth/login">Увійти</a></li>
-                <li><a href="/auth/register">Реєстрація</a></li>
-            </ul>
-        </nav>
-    </header>
+{% block content %}
+<section class="welcome">
+    <h1>Ласкаво просимо до нашого аукціонного застосунку!</h1>
+    <p>Наш сервіс дозволяє продавати та купувати товари за унікальною системою аукціонів. Зареєструйтесь, щоб
+        стати частиною нашої спільноти і почати свою першу угоду!</p>
+</section>
 
-    <main>
-        <section class="welcome">
-            <h1>Ласкаво просимо до нашого аукціонного застосунку!</h1>
-            <p>Наш сервіс дозволяє продавати та купувати товари за унікальною системою аукціонів. Зареєструйтесь, щоб
-                стати частиною нашої спільноти і почати свою першу угоду!</p>
-        </section>
+<section class="actions">
+    <button onclick="window.location.href='/auth/login'">Увійти</button>
+    <button onclick="window.location.href='/auth/register'">Реєстрація</button>
+</section>
 
-        <section class="actions">
-            <button onclick="window.location.href='/auth/login'">Увійти</button>
-            <button onclick="window.location.href='/auth/register'">Реєстрація</button>
-        </section>
+<section class="features">
+    <h2>Особливості нашої платформи:</h2>
+    <ul>
+        <li>Унікальна система аукціонів із пониженням ціни.</li>
+        <li>Безпечні та надійні платежі.</li>
+        <li>Можливість для продавців створювати аукціони і привертати увагу покупців.</li>
+    </ul>
+</section>
 
-        <section class="features">
-            <h2>Особливості нашої платформи:</h2>
-            <ul>
-                <li>Унікальна система аукціонів із пониженням ціни.</li>
-                <li>Безпечні та надійні платежі.</li>
-                <li>Можливість для продавців створювати аукціони і привертати увагу покупців.</li>
-            </ul>
-        </section>
-
-        <section class="auctions">
-            <h2>Активні аукціони:</h2>
-            {% if auctions %}
-            <ul>
-                {% for auction in auctions %}
-                <li>
-                    <h3>{{ auction.title }}</h3>
-                    <p>{{ auction.description }}</p>
-                    <p>Поточна ціна: {{ auction.current_price }} грн</p>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p>На даний момент немає активних аукціонів.</p>
-            {% endif %}
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2024 Аукціонний Застосунок. Всі права захищені.</p>
-    </footer>
-</body>
-
-</html>
+<section class="auctions">
+    <h2>Активні аукціони:</h2>
+    {% if auctions %}
+    <ul>
+        {% for auction in auctions %}
+        <li>
+            <h3>{{ auction.title }}</h3>
+            <p>{{ auction.description }}</p>
+            <p>Поточна ціна: {{ auction.current_price }} грн</p>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>На даний момент немає активних аукціонів.</p>
+    {% endif %}
+</section>
+{% endblock %}

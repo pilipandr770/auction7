@@ -1,76 +1,76 @@
-<!DOCTYPE html>
-<html lang="uk">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кабінет покупця</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
+{% block title %}
+Кабінет покупця
+{% endblock %}
 
-<body>
-    <h1>Кабінет покупця</h1>
-    <p>Ім'я користувача: {{ user.username }}</p>
-    <p>Баланс: <span id="balance-display">{{ user.balance }}</span> грн</p>
+{% block content %}
+<main>
+    <header>
+        <h1>Кабінет покупця</h1>
+        <p>Ім'я користувача: {{ user.username }}</p>
+        <p>Баланс: <span id="balance-display">{{ user.balance }}</span> грн</p>
+    </header>
 
     <!-- Форма для поповнення балансу -->
-    <form id="add-balance-form">
-        <label for="amount">Сума для поповнення:</label>
-        <input type="number" id="amount" name="amount" min="1" required>
-        <button type="submit">Поповнити баланс</button>
-    </form>
+    <section class="add-balance">
+        <h2>Поповнення балансу</h2>
+        <form id="add-balance-form">
+            <label for="amount">Сума для поповнення:</label>
+            <input type="number" id="amount" name="amount" min="1" required>
+            <button type="submit">Поповнити баланс</button>
+        </form>
+    </section>
 
     <!-- Список наявних аукціонів -->
-    <h2>Доступні аукціони</h2>
-    {% if auctions %}
-    <ul>
-        {% for auction in auctions %}
-        <li>
-            <strong>{{ auction.title }}</strong> - {{ auction.description }}
-            <p>Початкова ціна: {{ auction.starting_price }} грн</p>
-            <p>Статус: {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
-            {% if auction.is_active %}
-            <a href="/auction/{{ auction.id }}" class="participate-link">Деталі та участь</a>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>Немає доступних аукціонів.</p>
-    {% endif %}
+    <section class="auctions-list">
+        <h2>Доступні аукціони</h2>
+        {% if auctions %}
+        <ul>
+            {% for auction in auctions %}
+            <li>
+                <strong>{{ auction.title }}</strong> - {{ auction.description }}
+                <p>Початкова ціна: {{ auction.starting_price }} грн</p>
+                <p>Статус: {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
+                {% if auction.is_active %}
+                <a href="/auction/{{ auction.id }}" class="participate-link">Деталі та участь</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Немає доступних аукціонів.</p>
+        {% endif %}
+    </section>
+</main>
 
-    <!-- JavaScript для поповнення балансу -->
-    <script>
-        document.getElementById('add-balance-form').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const amount = document.getElementById('amount').value;
+<script>
+    document.getElementById('add-balance-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const amount = document.getElementById('amount').value;
 
-            try {
-                const response = await fetch('/user/add_balance', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({ amount: parseFloat(amount) })
-                });
+        try {
+            const response = await fetch('/user/add_balance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ amount: parseFloat(amount) })
+            });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('balance-display').innerText = data.new_balance;
-                    alert(data.message);
-                } else {
-                    const errorData = await response.json();
-                    alert(`Помилка: ${errorData.error}`);
-                }
-            } catch (error) {
-                console.error('Помилка:', error);
-                alert('Не вдалося поповнити баланс. Спробуйте пізніше.');
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('balance-display').innerText = data.new_balance;
+                alert(data.message);
+            } else {
+                const errorData = await response.json();
+                alert(`Помилка: ${errorData.error}`);
             }
-        });
-    </script>
-
-    <a href="/auth/logout">Вийти</a>
-</body>
-
-</html>
+        } catch (error) {
+            console.error('Помилка:', error);
+            alert('Не вдалося поповнити баланс. Спробуйте пізніше.');
+        }
+    });
+</script>
+{% endblock %}
