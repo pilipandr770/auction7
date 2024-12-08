@@ -1,16 +1,14 @@
-<!-- auction/app/templates/auth/login.html -->
-<!DOCTYPE html>
-<html lang="uk">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Авторизація</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
+{% block title %}
+Авторизація
+{% endblock %}
 
-<body>
-    <h2>Авторизація</h2>
+{% block content %}
+<main>
+    <header>
+        <h2>Авторизація</h2>
+    </header>
 
     <!-- Відображення повідомлень з `flash` -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -23,17 +21,18 @@
     {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('auth.login') }}">
-        <label for="email">Електронна пошта:</label>
-        <input type="email" id="email" name="email" required><br><br>
+    <section>
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <label for="email">Електронна пошта:</label>
+            <input type="email" id="email" name="email" required><br><br>
 
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" name="password" required><br><br>
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required><br><br>
 
-        <button type="submit">Увійти</button>
-    </form>
+            <button type="submit">Увійти</button>
+        </form>
 
-    <a href="{{ url_for('auth.register') }}">Ще не маєте облікового запису? Зареєструватися</a>
-</body>
-
-</html>
+        <p><a href="{{ url_for('auth.register') }}">Ще не маєте облікового запису? Зареєструватися</a></p>
+    </section>
+</main>
+{% endblock %}

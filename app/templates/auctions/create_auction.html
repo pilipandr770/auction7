@@ -1,12 +1,30 @@
-<form id="create-auction-form">
-    <label for="title">Назва:</label>
-    <input type="text" id="title" name="title" required>
-    <label for="description">Опис:</label>
-    <textarea id="description" name="description" required></textarea>
-    <label for="starting_price">Стартова ціна:</label>
-    <input type="number" id="starting_price" name="starting_price" required>
-    <button type="button" onclick="createAuction()">Створити аукціон</button>
-</form>
+{% extends "base.html" %}
+
+{% block title %}
+Створити Аукціон
+{% endblock %}
+
+{% block content %}
+<main>
+    <header>
+        <h1>Створення Аукціону</h1>
+    </header>
+
+    <section>
+        <form id="create-auction-form">
+            <label for="title">Назва:</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="description">Опис:</label>
+            <textarea id="description" name="description" required></textarea>
+
+            <label for="starting_price">Стартова ціна:</label>
+            <input type="number" id="starting_price" name="starting_price" required>
+
+            <button type="button" onclick="createAuction()">Створити аукціон</button>
+        </form>
+    </section>
+</main>
 
 <script>
     function createAuction() {
@@ -29,9 +47,10 @@
             .then(data => {
                 alert(data.message || data.error);
                 if (data.message) {
-                    window.location.reload();
+                    window.location.href = '/user/seller/{{ current_user.email }}';
                 }
             })
             .catch(error => console.error('Помилка:', error));
     }
 </script>
+{% endblock %}

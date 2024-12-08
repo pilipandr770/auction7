@@ -1,72 +1,55 @@
-<!-- templates/users/seller_dashboard.html -->
-<!DOCTYPE html>
-<html lang="uk">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кабінет продавця</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
+{% block title %}
+Кабінет продавця
+{% endblock %}
 
-<body>
+{% block content %}
+<main>
     <header>
         <h1>Кабінет продавця</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Головна</a></li>
-                <li><a href="/auth/logout">Вийти</a></li>
-            </ul>
-        </nav>
     </header>
 
-    <main>
-        <section class="user-info">
-            <h2>Інформація про продавця</h2>
-            <p><strong>Ім'я користувача:</strong> {{ user.username }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Баланс (тільки завершені аукціони):</strong> {{ balance_from_completed }} грн</p>
-        </section>
+    <section class="user-info">
+        <h2>Інформація про продавця</h2>
+        <p><strong>Ім'я користувача:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Баланс (тільки завершені аукціони):</strong> {{ balance_from_completed }} грн</p>
+    </section>
 
-        <section class="create-auction">
-            <h2>Створити новий аукціон</h2>
-            <form action="/auction/create" method="POST">
-                <label for="title">Назва:</label>
-                <input type="text" id="title" name="title" required>
-                <label for="description">Опис:</label>
-                <textarea id="description" name="description" required></textarea>
-                <label for="starting_price">Початкова ціна:</label>
-                <input type="number" id="starting_price" name="starting_price" required>
-                <button type="submit">Створити аукціон</button>
-            </form>
-        </section>
+    <section class="create-auction">
+        <h2>Створити новий аукціон</h2>
+        <form action="/auction/create" method="POST">
+            <label for="title">Назва:</label>
+            <input type="text" id="title" name="title" required>
+            <label for="description">Опис:</label>
+            <textarea id="description" name="description" required></textarea>
+            <label for="starting_price">Початкова ціна:</label>
+            <input type="number" id="starting_price" name="starting_price" required>
+            <button type="submit">Створити аукціон</button>
+        </form>
+    </section>
 
-        <section class="auctions">
-            <h2>Мої аукціони</h2>
-            {% if auctions %}
-            <ul>
-                {% for auction in auctions %}
-                <li>
-                    <h3>{{ auction.title }}</h3>
-                    <p>{{ auction.description }}</p>
-                    <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
-                    <p><strong>Статус:</strong> {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
-                    {% if not auction.is_active %}
-                    <p><strong>Зароблено з цього аукціону:</strong>
-                        {{ auction.starting_price * 0.1 * auction.total_participants }} грн</p>
-                    {% endif %}
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p>У вас ще немає створених аукціонів.</p>
-            {% endif %}
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2024 Аукціонний Застосунок. Всі права захищені.</p>
-    </footer>
-</body>
-
-</html>
+    <section class="auctions">
+        <h2>Мої аукціони</h2>
+        {% if auctions %}
+        <ul>
+            {% for auction in auctions %}
+            <li>
+                <h3>{{ auction.title }}</h3>
+                <p>{{ auction.description }}</p>
+                <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+                <p><strong>Статус:</strong> {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
+                {% if not auction.is_active %}
+                <p><strong>Зароблено з цього аукціону:</strong>
+                    {{ auction.starting_price * 0.1 * auction.total_participants }} грн</p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>У вас ще немає створених аукціонів.</p>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}
