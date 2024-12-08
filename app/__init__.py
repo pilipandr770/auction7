@@ -7,7 +7,6 @@ from flask_login import LoginManager
 app = None
 db = SQLAlchemy()
 migrate = Migrate()
-
 login_manager = LoginManager()
 
 def create_app():
@@ -37,8 +36,10 @@ def create_app():
         return User.query.get(int(user_id))
 
     # Реєстрація моделей
-    from app.models.auction import Auction  # Додаємо Auction для реєстрації
+    from app.models.auction import Auction
     from app.models.user import User
+    from app.models.auction_participant import AuctionParticipant  # Додаємо модель AuctionParticipant
+    from app.models.payment import Payment  # Додаємо модель Payment (за потреби)
 
     # Імпортуємо та реєструємо маршрути
     from app.routes.auth_routes import auth_bp

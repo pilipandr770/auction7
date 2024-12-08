@@ -34,6 +34,8 @@
                 <p>Статус: {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
                 {% if auction.is_active %}
                 <a href="/auction/{{ auction.id }}" class="participate-link">Деталі та участь</a>
+                <button class="view-auction-btn" data-auction-id="{{ auction.id }}">Переглянути поточну ціну
+                    (1€)</button>
                 {% endif %}
             </li>
             {% endfor %}
@@ -45,6 +47,7 @@
 </main>
 
 <script>
+    // Обробка поповнення балансу
     document.getElementById('add-balance-form').addEventListener('submit', async function (e) {
         e.preventDefault();
         const amount = document.getElementById('amount').value;
@@ -71,6 +74,33 @@
             console.error('Помилка:', error);
             alert('Не вдалося поповнити баланс. Спробуйте пізніше.');
         }
+    });
+
+    // Обробка перегляду поточної ціни та учасників
+    document.querySelectorAll('.view-auction-btn').forEach(button => {
+        button.addEventListener('click', async function () {
+            const auctionId = button.getAttribute('data-auction-id');
+            try {
+                const response = await fetch(`/auction/view/${auctionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Учасників: ${data.participants}, Поточна ціна: ${data.final_price} грн`);
+                } else {
+                    const errorData = await response.json();
+                    alert(`Помилка: ${errorData.error}`);
+                }
+            } catch (error) {
+                console.error('Помилка:', error);
+                alert('Не вдалося отримати деталі аукціону. Спробуйте пізніше.');
+            }
+        });
     });
 </script>
 {% endblock %}
