@@ -28,42 +28,24 @@ def create_auction():
         flash("Ціна повинна бути числом.", "error")
         return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
-    new_auction = Auction(
-        title=title,
-        description=description,
-        starting_price=starting_price,
-        current_price=starting_price,
-        seller_id=current_user.id
-    )
+    try:
+        new_auction = Auction(
+            title=title,
+            description=description,
+            starting_price=starting_price,
+            seller_id=current_user.id
+        )
+        db.session.add(new_auction)
+        db.session.commit()
 
-    db.session.add(new_auction)
-    db.session.commit()
+        flash("Аукціон успішно створено!", "success")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Помилка створення аукціону: {e}")
+        flash("Не вдалося створити аукціон. Спробуйте пізніше.", "error")
 
-    flash("Аукціон успішно створено!", "success")
     return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
-@auction_bp.route('/list', methods=['GET'])
-def list_auctions():
-    auctions = Auction.query.filter_by(is_active=True).all()
-    return render_template('index.html', auctions=auctions)
-
-@auction_bp.route('/seller', methods=['GET'])
-@login_required
-def seller_auctions():
-    if current_user.user_type != 'seller':
-        return redirect(url_for('auth.login'))
-
-    auctions = Auction.query.filter_by(seller_id=current_user.id).all()
-    return render_template('users/seller_dashboard.html', auctions=auctions)
-
-@auction_bp.route('/buyer', methods=['GET'])
-@login_required
-def buyer_auctions():
-    if current_user.user_type != 'buyer':
-        return redirect(url_for('auth.login'))
-
-    auctions = Auction.query.filter_by(is_active=True).all()
-    return render_template('users/buyer_dashboard.html', auctions=auctions)
 
 @auction_bp.route('/<int:auction_id>', methods=['GET', 'POST'])
 @login_required
@@ -75,28 +57,83 @@ def auction_detail(auction_id):
         return redirect(url_for('auction.buyer_auctions'))
 
     if request.method == 'POST':
-        entry_price = auction.starting_price * 0.1  # Вхідна ціна (10% від початкової ціни)
-        buyer = User.query.get(current_user.id)
+        try:
+            entry_price = auction.starting_price * 0.1  # Вхідна ціна (10% від початкової ціни)
+            buyer = User.query.get(current_user.id)
+
+            if not buyer:
+                return jsonify({"error": "Користувача не знайдено"}), 404
+
+            if buyer.balance < entry_price:
+                return jsonify({"error": "Недостатньо коштів на балансі"}), 400
+
+            # Оновлення даних аукціону
+            buyer.balance -= entry_price
+            seller = User.query.get(auction.seller_id)
+
+            if seller:
+                seller.balance += entry_price
+
+            auction.total_participants += 1
+            auction.current_price -= entry_price
+
+            if auction.current_price <= 0:
+                auction.current_price = 0
+                auction.is_active = False  # Закриваємо аукціон
+
+            db.session.commit()
+
+            return jsonify({
+                "message": "Успішно взято участь в аукціоні",
+                "participants": auction.total_participants,
+                "final_price": auction.current_price
+            }), 200
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Помилка участі в аукціоні: {e}")
+            return jsonify({"error": "Не вдалося взяти участь в аукціоні"}), 500
+
+    return render_template('auctions/auction_detail.html', auction=auction)
+
+
+@auction_bp.route('/participate/<int:auction_id>', methods=['POST'])
+@login_required
+def participate_in_auction(auction_id):
+    auction = Auction.query.get(auction_id)
+    if not auction:
+        return jsonify({"error": "Аукціон не знайдено"}), 404
+
+    if not auction.is_active:
+        return jsonify({"error": "Аукціон вже закритий"}), 400
+
+    ticket_price = auction.starting_price * 0.1
+    try:
+        if current_user.balance < ticket_price:
+            return jsonify({"error": "Недостатньо коштів на балансі"}), 400
+
         seller = User.query.get(auction.seller_id)
+        if not seller:
+            return jsonify({"error": "Продавця не знайдено"}), 404
 
-        if buyer.balance < entry_price:
-            flash("Недостатньо коштів на балансі для участі в аукціоні.", 'error')
-            return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+        current_user.balance -= ticket_price
+        seller.balance += ticket_price
 
-        # Списуємо з балансу покупця і додаємо на баланс продавця
-        buyer.balance -= entry_price
-        seller.balance += entry_price
         auction.total_participants += 1
+        auction.current_price -= ticket_price
 
-        # Зменшуємо поточну ціну
-        auction.current_price -= entry_price
         if auction.current_price <= 0:
             auction.current_price = 0
-            auction.is_active = False  # Закриваємо аукціон
+            auction.is_active = False
 
         db.session.commit()
 
-        flash(f"Ви успішно взяли участь в аукціоні. Учасників: {auction.total_participants}", 'success')
-        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
-
-    return render_template('auctions/auction_detail.html', auction=auction)
+        return jsonify({
+            "message": "Успішно взято участь!",
+            "participants": auction.total_participants,
+            "final_price": auction.current_price
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Помилка участі в аукціоні: {e}")
+        return jsonify({"error": "Не вдалося взяти участь в аукціоні"}), 500
