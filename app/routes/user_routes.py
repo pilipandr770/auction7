@@ -63,10 +63,23 @@ def seller_dashboard(email):
         flash("Користувача не знайдено", 'error')
         return redirect(url_for('auth.login'))
 
-    # Додаємо логіку для отримання аукціонів поточного продавця
-    auctions = Auction.query.filter_by(seller_id=user.id).all()
+    # Отримуємо всі аукціони продавця
+    all_auctions = Auction.query.filter_by(seller_id=user.id).all()
 
-    return render_template('users/seller_dashboard.html', user=user, auctions=auctions)
+    # Фільтруємо завершені аукціони
+    completed_auctions = [auction for auction in all_auctions if not auction.is_active]
+
+    # Розрахунок балансу на основі завершених аукціонів
+    balance_from_completed = sum(
+        auction.starting_price * 0.1 * auction.total_participants for auction in completed_auctions
+    )
+
+    return render_template(
+        'users/seller_dashboard.html',
+        user=user,
+        auctions=all_auctions,
+        balance_from_completed=balance_from_completed
+    )
 
 @user_bp.route('/participate/<int:auction_id>', methods=['POST'])
 @login_required
@@ -75,14 +88,15 @@ def participate_in_auction(auction_id):
     if not auction or not auction.is_active:
         return jsonify({"error": "Аукціон не знайдено або вже закритий"}), 400
 
-    ticket_price = 10  # Фіксована вартість квитка
+    # Розраховуємо вхідну ціну як 10% від початкової ціни
+    ticket_price = auction.starting_price * 0.1
     if current_user.balance < ticket_price:
         return jsonify({"error": "Недостатньо коштів на балансі"}), 400
 
     # Списуємо гроші з балансу покупця
     current_user.balance -= ticket_price
 
-    # Додаємо гроші на баланс продавця
+    # Додаємо гроші на баланс продавця (але не відображаємо їх до завершення аукціону)
     seller = User.query.get(auction.seller_id)
     if seller:
         seller.balance += ticket_price

@@ -25,7 +25,7 @@
             <h2>Інформація про продавця</h2>
             <p><strong>Ім'я користувача:</strong> {{ user.username }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Баланс:</strong> {{ user.balance }} грн</p>
+            <p><strong>Баланс (тільки завершені аукціони):</strong> {{ balance_from_completed }} грн</p>
         </section>
 
         <section class="create-auction">
@@ -51,6 +51,10 @@
                     <p>{{ auction.description }}</p>
                     <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
                     <p><strong>Статус:</strong> {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
+                    {% if not auction.is_active %}
+                    <p><strong>Зароблено з цього аукціону:</strong>
+                        {{ auction.starting_price * 0.1 * auction.total_participants }} грн</p>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>

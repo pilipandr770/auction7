@@ -1,3 +1,4 @@
+<!-- templates/auctions/auction_detail.html -->
 <!DOCTYPE html>
 <html lang="uk">
 
@@ -9,41 +10,80 @@
 </head>
 
 <body>
-    <h1>Деталі аукціону</h1>
-    <h2>{{ auction.title }}</h2>
-    <p><strong>Опис:</strong> {{ auction.description }}</p>
-    <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
-    <p><strong>Поточна ціна:</strong> {{ auction.current_price }} грн</p>
-    <p><strong>Кількість учасників:</strong> {{ auction.total_participants }}</p>
-    <p><strong>Статус:</strong> {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
+    <header>
+        <h1>Деталі аукціону</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Головна</a></li>
+                <li><a href="/user/buyer/{{ current_user.email }}">Повернутися до кабінету</a></li>
+                <li><a href="/auth/logout">Вийти</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    {% if auction.is_active %}
-    <form method="POST">
-        <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.1 | round(2) }} грн</p>
-        <button type="submit">Взяти участь</button>
-    </form>
-    <p><strong>Попередження:</strong> Після участі дані про кількість учасників і поточну ціну будуть доступні лише на 5
-        секунд.</p>
-    {% else %}
-    <p>Цей аукціон завершено.</p>
-    {% endif %}
+    <main>
+        <section class="auction-info">
+            <h2>{{ auction.title }}</h2>
+            <p><strong>Опис:</strong> {{ auction.description }}</p>
+            <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+        </section>
 
-    <a href="/user/buyer/{{ current_user.email }}">Повернутися до кабінету</a>
+        <section class="participate">
+            {% if auction.is_active %}
+            <form id="participate-form" method="POST">
+                <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.1 }} грн</p>
+                <button type="submit">Взяти участь</button>
+            </form>
+            {% else %}
+            <p>Цей аукціон завершено.</p>
+            {% endif %}
+        </section>
+
+        <section id="auction-details" style="display: none;">
+            <h2>Деталі аукціону</h2>
+            <p><strong>Кількість учасників:</strong> <span id="participants-count"></span></p>
+            <p><strong>Поточна ціна:</strong> <span id="current-price"></span> грн</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Аукціонний Застосунок. Всі права захищені.</p>
+    </footer>
 
     <script>
-        // Отримуємо змінну з атрибутів data-* 
-        const wasPostMethod = document.body.dataset.wasPost === "true";
+        document.getElementById('participate-form')?.addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-        if (wasPostMethod) {
-            setTimeout(function () {
-                // Очищення вмісту сторінки
-                document.body.innerHTML = `
-                    <h1>Доступ до деталей завершено</h1>
-                    <p>Деталі аукціону більше недоступні.</p>
-                    <a href="/user/buyer/{{ current_user.email }}">Повернутися до кабінету</a>
-                `;
-            }, 5000);
-        }
+            try {
+                const response = await fetch(location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('participants-count').textContent = data.participants;
+                    document.getElementById('current-price').textContent = data.final_price;
+
+                    const auctionDetails = document.getElementById('auction-details');
+                    auctionDetails.style.display = 'block';
+
+                    // Ховаємо інформацію через 5 секунд
+                    setTimeout(() => {
+                        auctionDetails.style.display = 'none';
+                    }, 5000);
+                } else {
+                    const errorData = await response.json();
+                    alert(`Помилка: ${errorData.error}`);
+                }
+            } catch (error) {
+                console.error('Помилка:', error);
+                alert('Не вдалося взяти участь в аукціоні. Спробуйте пізніше.');
+            }
+        });
     </script>
 </body>
 
