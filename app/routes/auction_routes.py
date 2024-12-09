@@ -126,20 +126,22 @@ def view_auction(auction_id):
                 "final_price": auction.current_price
             }), 200
 
-        if current_user.balance < view_price:
+        # Перевірка балансу
+        if not current_user.can_afford(view_price):
             return jsonify({"error": "Недостатньо коштів на балансі для перегляду"}), 400
 
-        # Списання коштів покупця та оновлення заробітку аукціону
-        current_user.balance -= view_price
+        # Списання коштів та оновлення заробітку
+        current_user.deduct_balance(view_price)  # Використання метода deduct_balance
         auction.add_to_earnings(view_price)
 
-        # Додавання до учасників
+        # Додавання учасника
         if not participant:
             participant = AuctionParticipant(auction_id=auction_id, user_id=current_user.id)
             db.session.add(participant)
 
         participant.mark_viewed_price()
 
+        # Збереження змін
         db.session.commit()
 
         return jsonify({

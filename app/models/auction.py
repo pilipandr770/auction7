@@ -49,6 +49,8 @@ class Auction(db.Model):
 
     def add_to_earnings(self, amount):
         self.total_earnings += amount
+        db.session.commit()  # Збереження змін
+
 
     def charge_for_view(self, user, amount):
         """

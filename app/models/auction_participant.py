@@ -27,7 +27,6 @@ class AuctionParticipant(db.Model):
         self.has_paid_entry = True
 
     def mark_viewed_price(self):
-        """
-        Позначає, що користувач переглянув поточну ціну.
-        """
         self.has_viewed_price = True
+        db.session.commit()  # Збереження змін
+
