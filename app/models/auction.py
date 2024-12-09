@@ -14,7 +14,7 @@ class Auction(db.Model):
     total_participants = db.Column(db.Integer, default=0, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     winner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    total_earnings = db.Column(db.Float, default=0.0, nullable=False)  # Загальний заробіток аукціону
+    total_earnings = db.Column(db.Float, default=0.0, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
@@ -29,71 +29,51 @@ class Auction(db.Model):
         self.seller_id = seller_id
 
     def add_participant(self, user):
-        """
-        Метод для додавання нового учасника до аукціону.
-        :param user: Користувач, який бере участь.
-        """
         if not self.is_user_participant(user):
             new_participant = AuctionParticipant(auction_id=self.id, user_id=user.id)
             db.session.add(new_participant)
             self.total_participants += 1
 
     def is_user_participant(self, user):
-        """
-        Перевіряє, чи користувач вже бере участь в аукціоні.
-        :param user: Користувач для перевірки.
-        :return: True, якщо користувач бере участь, False інакше.
-        """
         return self.participants.filter_by(user_id=user.id).count() > 0
 
     def decrease_price(self, entry_price):
-        """Метод для зниження ціни після кожного нового учасника."""
         self.current_price -= entry_price
         if self.current_price <= 0:
             self.current_price = 0
             self.close_auction()
 
     def close_auction(self, winner_id=None):
-        """Метод для закриття аукціону."""
         self.is_active = False
         self.winner_id = winner_id
 
     def add_to_earnings(self, amount):
-        """
-        Додає суму до загального заробітку аукціону.
-        :param amount: Сума для додавання.
-        """
         self.total_earnings += amount
 
+    def charge_for_view(self, user, amount):
+        """
+        Списує суму з користувача за перегляд поточної ціни
+        та додає її до заробітку аукціону.
+        """
+        if user.can_afford(amount):
+            user.deduct_balance(amount)
+            self.add_to_earnings(amount)
+        else:
+            raise ValueError("Недостатньо коштів для перегляду ціни.")
+
     def get_status(self):
-        """Метод для отримання статусу аукціону."""
         return 'Активний' if self.is_active else 'Закритий'
 
     def is_participation_allowed(self, user_balance, entry_price):
-        """
-        Перевіряє, чи може користувач взяти участь в аукціоні.
-        :param user_balance: Баланс користувача.
-        :param entry_price: Ціна за участь.
-        :return: True, якщо участь можлива, False - якщо ні.
-        """
-        if not self.is_active:
-            return False
-        if user_balance < entry_price:
+        if not self.is_active or user_balance < entry_price:
             return False
         return True
 
     def get_time_info(self):
-        """
-        Повертає інформацію про час створення і оновлення аукціону.
-        :return: Словник з датами створення та останнього оновлення.
-        """
         return {
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 
     def reset_current_price(self):
-        """
-        Скидає поточну ціну до стартової ціни.
-        """
         self.current_price = self.starting_price

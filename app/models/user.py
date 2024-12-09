@@ -53,3 +53,13 @@ class User(UserMixin, db.Model):
             self.balance -= amount
         else:
             raise ValueError("Недостатньо коштів на балансі.")
+
+    def add_balance(self, amount):
+        """
+        Додає кошти до балансу користувача.
+        :param amount: Сума для додавання.
+        """
+        if amount > 0:
+            self.balance += amount
+        else:
+            raise ValueError("Сума для поповнення повинна бути більше нуля.")
