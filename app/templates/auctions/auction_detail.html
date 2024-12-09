@@ -5,42 +5,59 @@
 {% endblock %}
 
 {% block content %}
-<main>
-    <header>
-        <h1>Деталі аукціону</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Головна</a></li>
-                <li><a href="/user/buyer/{{ current_user.email }}">Повернутися до кабінету</a></li>
-                <li><a href="/auth/logout">Вийти</a></li>
-            </ul>
-        </nav>
-    </header>
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Деталі аукціону</h1>
+    </div>
 
-    <section class="auction-info">
-        <h2>{{ auction.title }}</h2>
-        <p><strong>Опис:</strong> {{ auction.description }}</p>
-        <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
-    </section>
+    <nav class="mb-4">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link text-secondary" href="/">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary" href="/user/buyer/{{ current_user.email }}">Кабінет</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="/auth/logout">Вийти</a>
+            </li>
+        </ul>
+    </nav>
 
-    <section class="participate">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h2 class="card-title text-warning fw-bold">{{ auction.title }}</h2>
+            <p class="card-text"><strong>Опис:</strong> {{ auction.description }}</p>
+            <p class="card-text"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+        </div>
+    </div>
+
+    <div class="mt-4">
         {% if auction.is_active %}
-        <form id="participate-form" method="POST">
-            <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.01 }} грн</p>
-            <button type="submit">Взяти участь</button>
+        <form id="participate-form" method="POST" class="mb-4">
+            <div class="mb-3">
+                <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.01 }} грн</p>
+            </div>
+            <button type="submit" class="btn btn-warning w-100">Взяти участь</button>
         </form>
-        <button id="view-details-btn">Переглянути поточну ціну (1.00 €)</button>
+        <button id="view-details-btn" class="btn btn-secondary w-100">Переглянути поточну ціну (1.00 €)</button>
         {% else %}
-        <p>Цей аукціон завершено.</p>
+        <div class="alert alert-info mt-3">
+            <p>Цей аукціон завершено.</p>
+        </div>
         {% endif %}
-    </section>
+    </div>
 
-    <section id="auction-details" style="display: none;">
-        <h2>Деталі аукціону</h2>
-        <p><strong>Кількість учасників:</strong> <span id="participants-count"></span></p>
-        <p><strong>Поточна ціна:</strong> <span id="current-price"></span> грн</p>
-    </section>
-</main>
+    <div id="auction-details" class="mt-4" style="display: none;">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title text-secondary">Деталі аукціону</h5>
+                <p><strong>Кількість учасників:</strong> <span id="participants-count"></span></p>
+                <p><strong>Поточна ціна:</strong> <span id="current-price"></span> грн</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     // Обробка участі в аукціоні

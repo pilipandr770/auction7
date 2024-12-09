@@ -5,51 +5,73 @@
 {% endblock %}
 
 {% block content %}
-<main>
-    <header>
-        <h1>Кабінет продавця</h1>
-    </header>
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary">Кабінет продавця</h1>
+    </div>
 
-    <section class="user-info">
-        <h2>Інформація про продавця</h2>
-        <p><strong>Ім'я користувача:</strong> {{ user.username }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Баланс (тільки завершені аукціони):</strong> {{ balance_from_completed }} грн</p>
-    </section>
+    <!-- Інформація про продавця -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-warning">Інформація про продавця</h3>
+            <p><strong>Ім'я користувача:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Баланс (тільки завершені аукціони):</strong> {{ balance_from_completed }} грн</p>
+        </div>
+    </div>
 
-    <section class="create-auction">
-        <h2>Створити новий аукціон</h2>
-        <form action="/auction/create" method="POST">
-            <label for="title">Назва:</label>
-            <input type="text" id="title" name="title" required>
-            <label for="description">Опис:</label>
-            <textarea id="description" name="description" required></textarea>
-            <label for="starting_price">Початкова ціна:</label>
-            <input type="number" id="starting_price" name="starting_price" required>
-            <button type="submit">Створити аукціон</button>
-        </form>
-    </section>
+    <!-- Форма створення аукціону -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-secondary">Створити новий аукціон</h3>
+            <form action="/auction/create" method="POST" class="row g-3">
+                <div class="col-12">
+                    <label for="title" class="form-label">Назва:</label>
+                    <input type="text" id="title" name="title" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Опис:</label>
+                    <textarea id="description" name="description" class="form-control" required></textarea>
+                </div>
+                <div class="col-12">
+                    <label for="starting_price" class="form-label">Початкова ціна:</label>
+                    <input type="number" id="starting_price" name="starting_price" class="form-control" required>
+                </div>
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-warning w-50">Створити аукціон</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <section class="auctions">
-        <h2>Мої аукціони</h2>
-        {% if auctions %}
-        <ul>
-            {% for auction in auctions %}
-            <li>
-                <h3>{{ auction.title }}</h3>
-                <p>{{ auction.description }}</p>
-                <p><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
-                <p><strong>Статус:</strong> {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
-                {% if not auction.is_active %}
-                <p><strong>Зароблено з цього аукціону:</strong>
-                    {{ auction.starting_price * 0.1 * auction.total_participants }} грн</p>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>У вас ще немає створених аукціонів.</p>
-        {% endif %}
-    </section>
-</main>
+    <!-- Мої аукціони -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h3 class="card-title text-secondary">Мої аукціони</h3>
+            {% if auctions %}
+            <ul class="list-group">
+                {% for auction in auctions %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="text-secondary">{{ auction.title }}</h5>
+                        <p class="text-muted">{{ auction.description }}</p>
+                        <p class="text-muted"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+                        <p class="text-muted"><strong>Статус:</strong>
+                            <span class="{{ 'text-success' if auction.is_active else 'text-danger' }}">{{ 'Активний' if
+                                auction.is_active else 'Закритий' }}</span>
+                        </p>
+                        {% if not auction.is_active %}
+                        <p><strong>Зароблено з цього аукціону:</strong> {{ auction.starting_price * 0.1 *
+                            auction.total_participants }} грн</p>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted text-center">У вас ще немає створених аукціонів.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
