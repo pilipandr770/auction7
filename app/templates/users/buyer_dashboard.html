@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <!-- Список наявних аукціонів -->
+    <!-- Список доступних аукціонів -->
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <h3 class="card-title text-secondary">Доступні аукціони</h3>
@@ -40,9 +40,11 @@
                         <h5 class="text-secondary mb-1">{{ auction.title }}</h5>
                         <p class="text-muted mb-1">{{ auction.description }}</p>
                         <p class="text-muted mb-1">Початкова ціна: {{ auction.starting_price }} грн</p>
-                        <p class="text-muted mb-1">Статус: <strong
-                                class="{{ 'text-success' if auction.is_active else 'text-danger' }}">{{ 'Активний' if
-                                auction.is_active else 'Закритий' }}</strong></p>
+                        <p class="text-muted mb-1">Статус:
+                            <strong class="{{ 'text-success' if auction.is_active else 'text-danger' }}">
+                                {{ 'Активний' if auction.is_active else 'Закритий' }}
+                            </strong>
+                        </p>
                     </div>
                     {% if auction.is_active %}
                     <div class="btn-group">
@@ -106,7 +108,27 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    alert(`Учасників: ${data.participants}, Поточна ціна: ${data.final_price} грн`);
+
+                    // Створюємо тимчасове вікно зі сповіщенням
+                    const toast = document.createElement('div');
+                    toast.className = 'toast align-items-center text-bg-success border-0 position-fixed top-50 start-50 translate-middle';
+                    toast.style.zIndex = 1050;
+                    toast.innerHTML = `
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                Учасників: ${data.participants}, Поточна ціна: ${data.final_price} грн
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+
+                    // Ініціалізація Bootstrap Toast
+                    const toastElement = new bootstrap.Toast(toast);
+                    toastElement.show();
+
+                    // Видаляємо вікно через 5 секунд
+                    setTimeout(() => toast.remove(), 5000);
                 } else {
                     const errorData = await response.json();
                     alert(`Помилка: ${errorData.error}`);

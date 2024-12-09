@@ -5,6 +5,8 @@ from flask_login import login_required, current_user
 from app import db
 from app.models.user import User
 from app.models.auction import Auction  # Імпортуємо модель Auction
+from app.models.auction_participant import AuctionParticipant
+
 
 user_bp = Blueprint('user', __name__)
 
@@ -36,7 +38,7 @@ def add_balance():
         print(f"Помилка: {e}")
         return jsonify({"error": "Не вдалося поповнити баланс."}), 500
 
-@user_bp.route('/buyer/<string:email>', methods=['GET'])
+@user_bp.route('/buyer/<string:email>', methods=['GET', 'POST'])
 @login_required
 def buyer_dashboard(email):
     if current_user.email != email:
@@ -49,7 +51,47 @@ def buyer_dashboard(email):
         return redirect(url_for('auth.login'))
 
     auctions = Auction.query.filter_by(is_active=True).all()  # Доступні аукціони
+
+    if request.method == 'POST':
+        auction_id = request.form.get('auction_id')
+        auction = Auction.query.get(auction_id)
+
+        if not auction:
+            flash("Аукціон не знайдено.", "error")
+            return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+        try:
+            view_price = 1.0  # Вартість перегляду
+            participant = AuctionParticipant.query.filter_by(auction_id=auction.id, user_id=current_user.id).first()
+
+            if participant and participant.has_viewed_price:
+                flash("Ви вже переглядали поточну ціну цього аукціону.", "info")
+                return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+            if current_user.balance < view_price:
+                flash("Недостатньо коштів на балансі для перегляду ціни.", "error")
+                return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+            # Транзакція перегляду
+            current_user.balance -= view_price
+            auction.add_to_earnings(view_price)
+
+            if not participant:
+                participant = AuctionParticipant(auction_id=auction.id, user_id=current_user.id)
+                db.session.add(participant)
+
+            participant.mark_viewed_price()
+
+            db.session.commit()
+
+            flash(f"Перегляд ціни успішний! Поточна ціна: {auction.current_price} грн", "success")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Помилка перегляду ціни: {e}")
+            flash("Не вдалося виконати перегляд. Спробуйте пізніше.", "error")
+
     return render_template('users/buyer_dashboard.html', user=user, auctions=auctions)
+
 
 @user_bp.route('/seller/<string:email>', methods=['GET'])
 @login_required
@@ -118,4 +160,3 @@ def participate_in_auction(auction_id):
         "participants": auction.total_participants,
         "final_price": auction.current_price
     }), 200
-

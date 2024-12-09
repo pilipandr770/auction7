@@ -70,16 +70,11 @@ def auction_detail(auction_id):
                 return jsonify({"error": "Недостатньо коштів на балансі"}), 400
 
             buyer = User.query.get(current_user.id)
-            if not buyer:
-                return jsonify({"error": "Користувача не знайдено"}), 404
-
             seller = User.query.get(auction.seller_id)
-            if not seller:
-                return jsonify({"error": "Продавця не знайдено"}), 404
 
-            # Оновлення даних
-            buyer.balance -= entry_price
-            seller.balance += entry_price
+            # Транзакція участі
+            buyer.deduct_balance(entry_price)
+            seller.add_balance(entry_price)
 
             auction.total_participants += 1
             auction.current_price -= entry_price
@@ -125,17 +120,20 @@ def view_auction(auction_id):
         participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
 
         if participant and participant.has_viewed_price:
-            return jsonify({"message": "Ви вже переглядали поточну ціну", 
-                            "participants": auction.total_participants,
-                            "final_price": auction.current_price}), 200
+            return jsonify({
+                "message": "Ви вже переглядали поточну ціну",
+                "participants": auction.total_participants,
+                "final_price": auction.current_price
+            }), 200
 
         if current_user.balance < view_price:
             return jsonify({"error": "Недостатньо коштів на балансі для перегляду"}), 400
 
-        # Оновлюємо баланс користувача та аукціону
+        # Списання коштів покупця та оновлення заробітку аукціону
         current_user.balance -= view_price
         auction.add_to_earnings(view_price)
 
+        # Додавання до учасників
         if not participant:
             participant = AuctionParticipant(auction_id=auction_id, user_id=current_user.id)
             db.session.add(participant)
@@ -154,3 +152,4 @@ def view_auction(auction_id):
         db.session.rollback()
         print(f"Помилка перегляду аукціону: {e}")
         return jsonify({"error": "Не вдалося оновити перегляд"}), 500
+
