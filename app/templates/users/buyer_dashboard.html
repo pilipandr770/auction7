@@ -5,46 +5,61 @@
 {% endblock %}
 
 {% block content %}
-<main>
-    <header>
-        <h1>Кабінет покупця</h1>
-        <p>Ім'я користувача: {{ user.username }}</p>
-        <p>Баланс: <span id="balance-display">{{ user.balance }}</span> грн</p>
-    </header>
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary">Кабінет покупця</h1>
+        <p class="text-muted">Ім'я користувача: <strong>{{ user.username }}</strong></p>
+        <p>Баланс: <strong><span id="balance-display">{{ user.balance }}</span> грн</strong></p>
+    </div>
 
     <!-- Форма для поповнення балансу -->
-    <section class="add-balance">
-        <h2>Поповнення балансу</h2>
-        <form id="add-balance-form">
-            <label for="amount">Сума для поповнення:</label>
-            <input type="number" id="amount" name="amount" min="1" required>
-            <button type="submit">Поповнити баланс</button>
-        </form>
-    </section>
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-warning">Поповнення балансу</h3>
+            <form id="add-balance-form" class="row g-3">
+                <div class="col-12">
+                    <label for="amount" class="form-label text-secondary">Сума для поповнення:</label>
+                    <input type="number" id="amount" name="amount" class="form-control" min="1" required>
+                </div>
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-warning w-50">Поповнити баланс</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Список наявних аукціонів -->
-    <section class="auctions-list">
-        <h2>Доступні аукціони</h2>
-        {% if auctions %}
-        <ul>
-            {% for auction in auctions %}
-            <li>
-                <strong>{{ auction.title }}</strong> - {{ auction.description }}
-                <p>Початкова ціна: {{ auction.starting_price }} грн</p>
-                <p>Статус: {{ 'Активний' if auction.is_active else 'Закритий' }}</p>
-                {% if auction.is_active %}
-                <a href="/auction/{{ auction.id }}" class="participate-link">Деталі та участь</a>
-                <button class="view-auction-btn" data-auction-id="{{ auction.id }}">Переглянути поточну ціну
-                    (1€)</button>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>Немає доступних аукціонів.</p>
-        {% endif %}
-    </section>
-</main>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h3 class="card-title text-secondary">Доступні аукціони</h3>
+            {% if auctions %}
+            <ul class="list-group">
+                {% for auction in auctions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="text-secondary mb-1">{{ auction.title }}</h5>
+                        <p class="text-muted mb-1">{{ auction.description }}</p>
+                        <p class="text-muted mb-1">Початкова ціна: {{ auction.starting_price }} грн</p>
+                        <p class="text-muted mb-1">Статус: <strong
+                                class="{{ 'text-success' if auction.is_active else 'text-danger' }}">{{ 'Активний' if
+                                auction.is_active else 'Закритий' }}</strong></p>
+                    </div>
+                    {% if auction.is_active %}
+                    <div class="btn-group">
+                        <a href="/auction/{{ auction.id }}" class="btn btn-outline-primary">Деталі</a>
+                        <button class="btn btn-outline-warning view-auction-btn"
+                            data-auction-id="{{ auction.id }}">Переглянути ціну (1€)</button>
+                    </div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted text-center">Немає доступних аукціонів.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
 <script>
     // Обробка поповнення балансу

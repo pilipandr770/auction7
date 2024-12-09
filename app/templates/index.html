@@ -3,40 +3,52 @@
 {% block title %}Головна сторінка - Аукціонний Застосунок{% endblock %}
 
 {% block content %}
-<section class="welcome">
-    <h1>Ласкаво просимо до нашого аукціонного застосунку!</h1>
-    <p>Наш сервіс дозволяє продавати та купувати товари за унікальною системою аукціонів. Зареєструйтесь, щоб
-        стати частиною нашої спільноти і почати свою першу угоду!</p>
-</section>
+<div class="text-center py-5">
+    <h1 class="text-secondary fw-bold">Ласкаво просимо до нашого аукціонного застосунку!</h1>
+    <p class="text-muted fs-5">
+        Наш сервіс дозволяє продавати та купувати товари за унікальною системою аукціонів. Зареєструйтесь, щоб
+        стати частиною нашої спільноти і почати свою першу угоду!
+    </p>
+</div>
 
-<section class="actions">
-    <button onclick="window.location.href='/auth/login'">Увійти</button>
-    <button onclick="window.location.href='/auth/register'">Реєстрація</button>
-</section>
+<div class="text-center my-4">
+    <a href="/auth/login" class="btn btn-warning mx-2">Увійти</a>
+    <a href="/auth/register" class="btn btn-secondary mx-2">Реєстрація</a>
+</div>
 
-<section class="features">
-    <h2>Особливості нашої платформи:</h2>
-    <ul>
-        <li>Унікальна система аукціонів із пониженням ціни.</li>
-        <li>Безпечні та надійні платежі.</li>
-        <li>Можливість для продавців створювати аукціони і привертати увагу покупців.</li>
-    </ul>
-</section>
-
-<section class="auctions">
-    <h2>Активні аукціони:</h2>
-    {% if auctions %}
-    <ul>
-        {% for auction in auctions %}
-        <li>
-            <h3>{{ auction.title }}</h3>
-            <p>{{ auction.description }}</p>
-            <p>Початкова ціна: {{ auction.starting_price }} грн</p>
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">Особливості нашої платформи:</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">
+            Унікальна система аукціонів із пониженням ціни.
         </li>
-        {% endfor %}
+        <li class="list-group-item bg-light text-muted">
+            Безпечні та надійні платежі.
+        </li>
+        <li class="list-group-item bg-light text-muted">
+            Можливість для продавців створювати аукціони і привертати увагу покупців.
+        </li>
     </ul>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">Активні аукціони:</h2>
+    {% if auctions %}
+    <div class="row mt-4">
+        {% for auction in auctions %}
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-warning fw-bold">{{ auction.title }}</h5>
+                    <p class="card-text text-muted">{{ auction.description }}</p>
+                    <p class="text-dark">Початкова ціна: {{ auction.starting_price }} грн</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
     {% else %}
-    <p>На даний момент немає активних аукціонів.</p>
+    <p class="text-center text-muted fs-5">На даний момент немає активних аукціонів.</p>
     {% endif %}
 </section>
 {% endblock %}
