@@ -7,7 +7,6 @@ from app.models.auction_participant import AuctionParticipant
 
 auction_bp = Blueprint('auction', __name__)
 
-
 @auction_bp.route('/create', methods=['POST'])
 @login_required
 def create_auction():
@@ -47,7 +46,6 @@ def create_auction():
         flash("Не вдалося створити аукціон. Спробуйте пізніше.", "error")
 
     return redirect(url_for('user.seller_dashboard', email=current_user.email))
-
 
 @auction_bp.route('/<int:auction_id>', methods=['GET', 'POST'])
 @login_required
@@ -104,7 +102,6 @@ def auction_detail(auction_id):
 
     return render_template('auctions/auction_detail.html', auction=auction)
 
-
 @auction_bp.route('/view/<int:auction_id>', methods=['POST'])
 @login_required
 def view_auction(auction_id):
@@ -130,9 +127,11 @@ def view_auction(auction_id):
         if not current_user.can_afford(view_price):
             return jsonify({"error": "Недостатньо коштів на балансі для перегляду"}), 400
 
-        # Списання коштів та оновлення заробітку
-        current_user.deduct_balance(view_price)  # Використання метода deduct_balance
-        auction.add_to_earnings(view_price)
+        # Списання коштів та оновлення балансу платформи
+        current_user.deduct_balance(view_price)
+        admin = User.query.filter_by(is_admin=True).first()
+        if admin:
+            admin.add_balance(view_price)
 
         # Додавання учасника
         if not participant:
