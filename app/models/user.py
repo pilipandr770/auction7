@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
     balance = db.Column(db.Float, default=0.0)
+    platform_balance = db.Column(db.Float, default=0.0)  # Баланс платформи
     user_type = db.Column(db.String(10), nullable=False)  # "buyer", "seller", "admin"
     is_admin = db.Column(db.Boolean, default=False)  # Поле для адміністратора
 
@@ -67,6 +68,19 @@ class User(UserMixin, db.Model):
             self.balance += amount
             db.session.commit()
             print(f"[INFO] Баланс після поповнення: {self.balance}")  # Діагностика
+        else:
+            raise ValueError("Сума для поповнення повинна бути більше нуля.")
+
+    def add_platform_balance(self, amount):
+        """
+        Додає кошти до балансу платформи (адміністратора).
+        :param amount: Сума для додавання.
+        """
+        if amount > 0:
+            print(f"[INFO] Баланс платформи до поповнення: {self.platform_balance}")  # Діагностика
+            self.platform_balance += amount
+            db.session.commit()
+            print(f"[INFO] Баланс платформи після поповнення: {self.platform_balance}")  # Діагностика
         else:
             raise ValueError("Сума для поповнення повинна бути більше нуля.")
 

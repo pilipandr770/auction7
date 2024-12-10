@@ -16,5 +16,11 @@ def admin_dashboard():
     users = User.query.all()
     auctions = Auction.query.all()
 
+    # Розрахунок загального балансу адміністратора
+    admin_balance = current_user.balance  # Поточний баланс адміністратора
+
     # Відображення панелі адміністратора
-    return render_template('admin/dashboard.html', users=users, auctions=auctions)
+    return render_template('admin/dashboard.html', 
+                           users=users, 
+                           auctions=auctions, 
+                           admin_balance=admin_balance)

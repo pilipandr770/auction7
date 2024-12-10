@@ -8,6 +8,15 @@
 <div class="container my-5">
     <h1 class="text-center text-secondary">Адмін Панель</h1>
 
+    <!-- Баланс платформи -->
+    <section class="my-4">
+        <h2 class="text-secondary">Баланс платформи</h2>
+        <div class="alert alert-info">
+            <strong>Загальний баланс платформи:</strong> {{ admin_balance }} EUR
+        </div>
+    </section>
+
+    <!-- Список користувачів -->
     <section class="my-4">
         <h2 class="text-secondary">Список користувачів</h2>
         <table class="table table-striped">
@@ -34,6 +43,7 @@
         </table>
     </section>
 
+    <!-- Список аукціонів -->
     <section class="my-4">
         <h2 class="text-secondary">Список аукціонів</h2>
         <table class="table table-striped">
