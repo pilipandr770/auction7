@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, current_user
 from app.models.user import User
 from app import db
 
@@ -23,7 +23,9 @@ def login():
         flash("Успішний вхід", 'success')
 
         # Перевірка типу користувача (user_type)
-        if user.user_type == "seller":
+        if user.user_type == "admin":
+            return redirect(url_for('admin.admin_dashboard'))  # Виправлений шлях
+        elif user.user_type == "seller":
             return redirect(url_for('user.seller_dashboard', email=user.email))
         elif user.user_type == "buyer":
             return redirect(url_for('user.buyer_dashboard', email=user.email))
@@ -33,13 +35,14 @@ def login():
 
     return render_template('auth/login.html')
 
+
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         email = request.form.get('email')
         username = request.form.get('username')
         password = request.form.get('password')
-        user_type = request.form.get('user_type')  # "seller" або "buyer"
+        user_type = request.form.get('user_type')  # "seller", "buyer" або "admin"
 
         if not email or not username or not password or not user_type:
             flash("Усі поля обов'язкові", 'error')
@@ -51,8 +54,15 @@ def register():
             flash("Користувач із таким email вже існує", 'error')
             return redirect(url_for('auth.register'))
 
+        # Перевірка типу користувача
+        if user_type not in ['buyer', 'seller', 'admin']:
+            flash("Невірний тип користувача", 'error')
+            return redirect(url_for('auth.register'))
+
         # Створення нового користувача
         user = User(username=username, email=email, password=password, user_type=user_type)
+        if user_type == "admin":
+            user.is_admin = True  # Позначаємо адміністратора
         db.session.add(user)
         db.session.commit()
 
@@ -61,8 +71,12 @@ def register():
 
     return render_template('auth/register.html')
 
+
 @auth_bp.route('/logout', methods=['GET'])
 def logout():
-    logout_user()
-    flash("Ви успішно вийшли з системи", 'success')
+    if current_user.is_authenticated:
+        logout_user()
+        flash("Ви успішно вийшли з системи", 'success')
+    else:
+        flash("Ви ще не авторизовані", 'error')
     return redirect(url_for('auth.login'))
