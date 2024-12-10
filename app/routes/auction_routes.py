@@ -112,11 +112,14 @@ def view_auction(auction_id):
     if not auction.is_active:
         return jsonify({"error": "Аукціон вже закритий"}), 400
 
+    # Перевіряємо, чи користувач є учасником аукціону
+    participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
+    if not participant or not participant.has_paid_entry:
+        return jsonify({"error": "Ви повинні сплатити за участь, щоб переглянути цю інформацію"}), 403
+
     try:
         view_price = 1.0  # Вартість перегляду
-        participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
-
-        if participant and participant.has_viewed_price:
+        if participant.has_viewed_price:
             return jsonify({
                 "message": "Ви вже переглядали поточну ціну",
                 "participants": auction.total_participants,
@@ -127,17 +130,13 @@ def view_auction(auction_id):
         if not current_user.can_afford(view_price):
             return jsonify({"error": "Недостатньо коштів на балансі для перегляду"}), 400
 
-        # Списання коштів та оновлення балансу платформи
-        current_user.deduct_balance(view_price)
+        # Списання коштів та оновлення заробітку
+        current_user.deduct_balance(view_price)  # Використання метода deduct_balance
         admin = User.query.filter_by(is_admin=True).first()
         if admin:
-            admin.add_balance(view_price)
+            admin.add_balance(view_price)  # Додаємо до балансу адміністратора
 
-        # Додавання учасника
-        if not participant:
-            participant = AuctionParticipant(auction_id=auction_id, user_id=current_user.id)
-            db.session.add(participant)
-
+        # Позначаємо, що користувач переглянув ціну
         participant.mark_viewed_price()
 
         # Збереження змін
