@@ -29,6 +29,8 @@
             <h2 class="card-title text-warning fw-bold">{{ auction.title }}</h2>
             <p class="card-text"><strong>Опис:</strong> {{ auction.description }}</p>
             <p class="card-text"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+            <p class="card-text"><strong>Продавець:</strong> {{ auction.seller.username }} ({{ auction.seller.email }})
+            </p>
 
             <!-- Відображення фотографій -->
             {% if auction.photos %}
@@ -55,9 +57,14 @@
             <button type="submit" class="btn btn-warning w-100">Взяти участь</button>
         </form>
         <button id="view-details-btn" class="btn btn-secondary w-100">Переглянути поточну ціну (1.00 €)</button>
+        <form id="close-auction-form" method="POST"
+            action="{{ url_for('auction.close_auction', auction_id=auction.id) }}">
+            <button type="submit" class="btn btn-danger w-100 mt-3">Закрити аукціон</button>
+        </form>
         {% else %}
         <div class="alert alert-info mt-3">
             <p>Цей аукціон завершено.</p>
+            <p><strong>Покупець:</strong> {{ auction.winner.username }} ({{ auction.winner.email }})</p>
         </div>
         {% endif %}
     </div>

@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from sqlalchemy.orm import validates
 
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
@@ -83,6 +84,28 @@ class User(UserMixin, db.Model):
             print(f"[INFO] Баланс платформи після поповнення: {self.platform_balance}")  # Діагностика
         else:
             raise ValueError("Сума для поповнення повинна бути більше нуля.")
+
+    def process_auction_closure(self, auction, buyer):
+        """
+        Завершує аукціон:
+        - Списує кошти з балансу покупця.
+        - Додає кошти на баланс продавця.
+        - Оновлює дані аукціону.
+        """
+        if not auction.is_active:
+            raise ValueError("Аукціон вже закритий.")
+        if buyer.balance < auction.current_price:
+            raise ValueError("Недостатньо коштів для закриття аукціону.")
+
+        # Списуємо кошти з балансу покупця
+        buyer.deduct_balance(auction.current_price)
+
+        # Додаємо кошти на баланс продавця
+        self.add_balance(auction.current_price)
+
+        # Завершуємо аукціон
+        auction.close_auction(winner_id=buyer.id)
+        db.session.commit()
 
     @validates('user_type')
     def validate_user_type(self, key, value):
