@@ -57,16 +57,19 @@
                 {% for auction in auctions %}
                 <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>
-                        <h5 class="text-secondary">{{ auction.title }}</h5>
-                        <p class="text-muted">{{ auction.description }}</p>
-                        <p class="text-muted"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+                        <h5 class="text-secondary">{{ auction['title'] }}</h5>
+                        <p class="text-muted">{{ auction['description'] }}</p>
+                        <p class="text-muted"><strong>Початкова ціна:</strong> {{ auction['starting_price'] }} грн</p>
                         <p class="text-muted"><strong>Статус:</strong>
-                            <span class="{{ 'text-success' if auction.is_active else 'text-danger' }}">{{ 'Активний' if
-                                auction.is_active else 'Закритий' }}</span>
+                            <span class="{{ 'text-success' if auction['status'] == 'Активний' else 'text-danger' }}">
+                                {{ auction['status'] }}
+                            </span>
                         </p>
-                        {% if not auction.is_active %}
-                        <p><strong>Зароблено з цього аукціону:</strong> {{ auction.starting_price * 0.1 *
-                            auction.total_participants }} грн</p>
+                        {% if auction['status'] == 'Закритий' %}
+                        <p>Зароблено з цього аукціону:
+                            {{ auction['total_earnings'] | round(2) }} грн
+                        </p>
+                        <p><strong>Кількість учасників:</strong> {{ auction['total_participants'] }}</p>
                         {% endif %}
                     </div>
                 </li>

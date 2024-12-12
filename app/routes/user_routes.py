@@ -109,19 +109,30 @@ def seller_dashboard(email):
     all_auctions = Auction.query.filter_by(seller_id=user.id).all()
 
     # Фільтруємо завершені аукціони
-    completed_auctions = [auction for auction in all_auctions if not auction.is_active]
+    completed_auctions = [
+        {
+            'title': auction.title,
+            'description': auction.description,
+            'starting_price': auction.starting_price,
+            'status': 'Закритий' if not auction.is_active else 'Активний',
+            'total_earnings': round(auction.starting_price + auction.current_price, 2),
+            'total_participants': auction.total_participants
+        }
+        for auction in all_auctions if not auction.is_active
+    ]
 
     # Розрахунок балансу на основі завершених аукціонів
     balance_from_completed = sum(
-        auction.starting_price * 0.1 * auction.total_participants for auction in completed_auctions
+        auction['starting_price'] * 0.1 * auction['total_participants'] for auction in completed_auctions
     )
 
     return render_template(
         'users/seller_dashboard.html',
         user=user,
-        auctions=all_auctions,
+        auctions=completed_auctions,
         balance_from_completed=balance_from_completed
     )
+
 
 @user_bp.route('/participate/<int:auction_id>', methods=['POST'])
 @login_required
@@ -130,33 +141,87 @@ def participate_in_auction(auction_id):
     if not auction or not auction.is_active:
         return jsonify({"error": "Аукціон не знайдено або вже закритий"}), 400
 
-    # Розраховуємо вхідну ціну як 10% від початкової ціни
-    ticket_price = auction.starting_price * 0.1
-    if current_user.balance < ticket_price:
+    # Розрахунок вхідної ціни
+    entry_price = auction.starting_price * 0.01
+    if current_user.balance < entry_price:
         return jsonify({"error": "Недостатньо коштів на балансі"}), 400
 
-    # Списуємо гроші з балансу покупця
-    current_user.balance -= ticket_price
+    try:
+        # Списуємо гроші з покупця
+        current_user.deduct_balance(entry_price)
 
-    # Додаємо гроші на баланс продавця (але не відображаємо їх до завершення аукціону)
-    seller = User.query.get(auction.seller_id)
-    if seller:
-        seller.balance += ticket_price
+        # Додаємо учасника до аукціону
+        participant = AuctionParticipant.query.filter_by(auction_id=auction.id, user_id=current_user.id).first()
+        if not participant:
+            participant = AuctionParticipant(auction_id=auction.id, user_id=current_user.id)
+            db.session.add(participant)
 
-    # Збільшуємо кількість учасників
-    auction.total_participants += 1
+        # Позначаємо оплату участі
+        participant.has_paid_entry = True
 
-    # Оновлюємо поточну ціну
-    auction.current_price -= ticket_price
-    if auction.current_price <= 0:
-        auction.current_price = 0
-        auction.is_active = False  # Закриваємо аукціон
+        # Оновлюємо дані аукціону
+        auction.total_participants += 1
 
-    db.session.commit()
+        db.session.commit()
+        return jsonify({
+            "message": "Успішно взято участь!",
+            "participants": auction.total_participants,
+            "final_price": auction.current_price
+        }), 200
 
-    # Повертаємо інформацію для 5-секундного перегляду
-    return jsonify({
-        "message": "Успішно взято участь!",
-        "participants": auction.total_participants,
-        "final_price": auction.current_price
-    }), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Помилка участі: {e}")
+        return jsonify({"error": "Не вдалося взяти участь"}), 500
+
+
+
+@user_bp.route('/close_auction/<int:auction_id>', methods=['POST'])
+@login_required
+def close_auction(auction_id):
+    auction = Auction.query.get(auction_id)
+    if not auction:
+        flash("Аукціон не знайдено.", "error")
+        return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+    if not auction.is_active:
+        flash("Аукціон вже закритий.", "info")
+        return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+    # Перевірка, чи користувач є учасником аукціону
+    participant = AuctionParticipant.query.filter_by(auction_id=auction.id, user_id=current_user.id).first()
+    if not participant or not participant.has_paid_entry:
+        flash("Ви не можете закрити цей аукціон, оскільки не брали участь у ньому.", "error")
+        return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+    # Перевірка, чи вистачає коштів для завершення аукціону
+    if current_user.balance < auction.current_price:
+        flash("Недостатньо коштів для закриття аукціону.", "error")
+        return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+    try:
+        seller = User.query.get(auction.seller_id)
+
+        # Розрахунок загальної суми для продавця
+        total_entry_payments = auction.total_participants * auction.starting_price * 0.01  # Усі вхідні внески
+        total_revenue = total_entry_payments + auction.current_price  # Усі внески + остаточна ціна
+
+        # Списуємо тільки необхідну суму (остаточну ціну) з покупця
+        current_user.deduct_balance(auction.current_price)
+
+        # Додаємо всю зароблену суму на баланс продавця
+        seller.add_balance(total_revenue)
+
+        # Закриваємо аукціон
+        auction.close_auction(winner_id=current_user.id)
+
+        db.session.commit()
+
+        flash("Аукціон успішно закрито. Зв'яжіться з продавцем для отримання товару.", "success")
+        return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Помилка закриття аукціону: {e}")
+        flash("Не вдалося закрити аукціон. Спробуйте пізніше.", "error")
+        return redirect(url_for('user.buyer_dashboard', email=current_user.email))

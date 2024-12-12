@@ -22,7 +22,9 @@ class Auction(db.Model):
     photos = db.Column(JSON, default=list)  # Поле для зберігання шляхів до фото у форматі JSON
 
     # Відношення з AuctionParticipant
-    participants = relationship('AuctionParticipant', back_populates='auction', cascade='all, delete-orphan', lazy='dynamic')
+    participants = relationship(
+        'AuctionParticipant', back_populates='auction', cascade='all, delete-orphan', lazy='dynamic'
+    )
 
     def __init__(self, title, description, starting_price, seller_id, photos=None):
         self.title = title
@@ -42,16 +44,53 @@ class Auction(db.Model):
         return self.participants.filter_by(user_id=user.id).count() > 0
 
     def decrease_price(self, entry_price):
+        """
+        Зменшує поточну ціну аукціону на задану суму.
+        """
         self.current_price -= entry_price
         if self.current_price <= 0:
             self.current_price = 0
             self.close_auction()
 
     def close_auction(self, winner_id=None):
+        """
+        Закриває аукціон, встановлюючи статус як неактивний,
+        та зберігає ID переможця, якщо вказано.
+        """
         self.is_active = False
-        self.winner_id = winner_id
+        if winner_id:
+            self.winner_id = winner_id
+        db.session.commit()
+
+    def finalize_auction(self, buyer, seller):
+        """
+        Завершує аукціон:
+        - Списує кошти з переможця (лише `current_price`).
+        - Додає дохід до балансу продавця (всі вхідні внески + `current_price`).
+        - Зберігає ID переможця.
+        - Закриває аукціон.
+        """
+        # Розрахунок загального доходу продавця
+        total_entry_payments = self.total_participants * self.starting_price * 0.01
+        total_revenue = total_entry_payments + self.current_price
+
+        # Перевірка, чи вистачає коштів у покупця
+        if buyer.balance < self.current_price:
+            raise ValueError("Недостатньо коштів для завершення аукціону.")
+
+        # Списуємо тільки `current_price` з покупця
+        buyer.deduct_balance(self.current_price)
+
+        # Додаємо всю зароблену суму до балансу продавця
+        seller.add_balance(total_revenue)
+
+        # Закриваємо аукціон
+        self.close_auction(winner_id=buyer.id)
 
     def add_to_earnings(self, amount):
+        """
+        Додає суму до заробітку аукціону.
+        """
         self.total_earnings += amount
         db.session.commit()
 
@@ -67,20 +106,32 @@ class Auction(db.Model):
             raise ValueError("Недостатньо коштів для перегляду ціни.")
 
     def get_status(self):
+        """
+        Повертає статус аукціону як рядок ('Активний' або 'Закритий').
+        """
         return 'Активний' if self.is_active else 'Закритий'
 
     def is_participation_allowed(self, user_balance, entry_price):
+        """
+        Перевіряє, чи дозволено користувачу брати участь в аукціоні.
+        """
         if not self.is_active or user_balance < entry_price:
             return False
         return True
 
     def get_time_info(self):
+        """
+        Повертає інформацію про час створення та оновлення аукціону.
+        """
         return {
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 
     def reset_current_price(self):
+        """
+        Скидає поточну ціну до стартової.
+        """
         self.current_price = self.starting_price
 
     def add_photos(self, photos):

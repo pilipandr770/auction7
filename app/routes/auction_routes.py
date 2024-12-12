@@ -174,3 +174,51 @@ def view_auction(auction_id):
         db.session.rollback()
         print(f"Помилка перегляду аукціону: {e}")
         return jsonify({"error": "Не вдалося оновити перегляд"}), 500
+
+
+@auction_bp.route('/close/<int:auction_id>', methods=['POST'])
+@login_required
+def close_auction(auction_id):
+    auction = Auction.query.get(auction_id)
+
+    if not auction:
+        flash("Аукціон не знайдено.", "error")
+        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+
+    if not auction.is_active:
+        flash("Цей аукціон вже закрито.", "info")
+        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+
+    # Перевірка, чи користувач є учасником аукціону
+    participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
+    if not participant or not participant.has_paid_entry:
+        flash("Ви не можете закрити аукціон, оскільки не брали участь у ньому.", "error")
+        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+
+    # Перевірка, чи у користувача достатньо коштів
+    if current_user.balance < auction.current_price:
+        flash("Недостатньо коштів для закриття аукціону.", "error")
+        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+
+    try:
+        # Списання коштів з балансу покупця
+        buyer = current_user
+        seller = User.query.get(auction.seller_id)
+
+        buyer.deduct_balance(auction.current_price)
+        seller.add_balance(auction.current_price)
+
+        # Оновлення статусу аукціону
+        auction.is_active = False
+        auction.winner_id = buyer.id  # Зберігаємо ідентифікатор переможця
+
+        db.session.commit()
+
+        flash("Аукціон успішно закрито! Товар належить вам.", "success")
+        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Помилка закриття аукціону: {e}")
+        flash("Не вдалося закрити аукціон. Спробуйте пізніше.", "error")
+        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
