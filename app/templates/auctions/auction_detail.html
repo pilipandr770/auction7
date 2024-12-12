@@ -29,6 +29,20 @@
             <h2 class="card-title text-warning fw-bold">{{ auction.title }}</h2>
             <p class="card-text"><strong>Опис:</strong> {{ auction.description }}</p>
             <p class="card-text"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+
+            <!-- Відображення фотографій -->
+            {% if auction.photos %}
+            <div class="mt-4">
+                <h5 class="text-secondary">Фотографії товару:</h5>
+                <div class="row">
+                    {% for photo in auction.photos %}
+                    <div class="col-md-3 mb-3">
+                        <img src="{{ url_for('static', filename=photo) }}" class="img-fluid rounded" alt="Фото товару">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 

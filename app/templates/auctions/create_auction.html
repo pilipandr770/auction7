@@ -12,7 +12,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
-            <form id="create-auction-form">
+            <form id="create-auction-form" enctype="multipart/form-data" method="POST" action="/auction/create">
                 <div class="mb-3">
                     <label for="title" class="form-label text-secondary">Назва:</label>
                     <input type="text" id="title" name="title" class="form-control" placeholder="Введіть назву"
@@ -31,39 +31,17 @@
                         placeholder="Введіть стартову ціну" required>
                 </div>
 
+                <div class="mb-3">
+                    <label for="photos" class="form-label text-secondary">Фотографії товару:</label>
+                    <input type="file" id="photos" name="photos" class="form-control" multiple accept="image/*">
+                    <small class="form-text text-muted">Можна завантажити до 5 фотографій.</small>
+                </div>
+
                 <div class="text-center">
-                    <button type="button" onclick="createAuction()" class="btn btn-warning">Створити аукціон</button>
+                    <button type="submit" class="btn btn-warning">Створити аукціон</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-    function createAuction() {
-        const title = document.getElementById('title').value;
-        const description = document.getElementById('description').value;
-        const startingPrice = document.getElementById('starting_price').value;
-
-        fetch('/auction/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: title,
-                description: description,
-                starting_price: startingPrice
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message || data.error);
-                if (data.message) {
-                    window.location.href = '/user/seller/{{ current_user.email }}';
-                }
-            })
-            .catch(error => console.error('Помилка:', error));
-    }
-</script>
 {% endblock %}

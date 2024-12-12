@@ -1,17 +1,17 @@
-"""Перегенерація міграцій
+"""Початкова міграція
 
-Revision ID: 0d8a984c76f8
-Revises: 587ae8603977
-Create Date: 2024-12-08 17:53:01.788521
+Revision ID: 44c34cbf601b
+Revises: 
+Create Date: 2024-12-11 21:05:28.960468
 
 """
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import sqlite
 
 # revision identifiers, used by Alembic.
-revision = '0d8a984c76f8'
-down_revision = '587ae8603977'
+revision = '44c34cbf601b'
+down_revision = None
 branch_labels = None
 depends_on = None
 
@@ -24,7 +24,9 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=128), nullable=False),
     sa.Column('balance', sa.Float(), nullable=True),
+    sa.Column('platform_balance', sa.Float(), nullable=True),
     sa.Column('user_type', sa.String(length=10), nullable=False),
+    sa.Column('is_admin', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('username')
@@ -42,6 +44,7 @@ def upgrade():
     sa.Column('total_earnings', sa.Float(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('photos', sqlite.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['seller_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['winner_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')

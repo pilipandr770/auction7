@@ -1,6 +1,8 @@
 from sqlalchemy.orm import relationship
 from app.models.auction_participant import AuctionParticipant
 from app import db
+from sqlalchemy.dialects.sqlite import JSON
+
 
 class Auction(db.Model):
     __tablename__ = 'auctions'
@@ -17,16 +19,18 @@ class Auction(db.Model):
     total_earnings = db.Column(db.Float, default=0.0, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False)
+    photos = db.Column(JSON, default=list)  # Поле для зберігання шляхів до фото у форматі JSON
 
     # Відношення з AuctionParticipant
     participants = relationship('AuctionParticipant', back_populates='auction', cascade='all, delete-orphan', lazy='dynamic')
 
-    def __init__(self, title, description, starting_price, seller_id):
+    def __init__(self, title, description, starting_price, seller_id, photos=None):
         self.title = title
         self.description = description
         self.starting_price = starting_price
         self.current_price = starting_price
         self.seller_id = seller_id
+        self.photos = photos if photos else []
 
     def add_participant(self, user):
         if not self.is_user_participant(user):
@@ -49,8 +53,7 @@ class Auction(db.Model):
 
     def add_to_earnings(self, amount):
         self.total_earnings += amount
-        db.session.commit()  # Збереження змін
-
+        db.session.commit()
 
     def charge_for_view(self, user, amount):
         """
@@ -79,3 +82,13 @@ class Auction(db.Model):
 
     def reset_current_price(self):
         self.current_price = self.starting_price
+
+    def add_photos(self, photos):
+        """
+        Додає шляхи до фотографій у поле photos.
+        :param photos: Список шляхів до фотографій.
+        """
+        if not self.photos:
+            self.photos = []
+        self.photos.extend(photos)
+        db.session.commit()
