@@ -38,6 +38,12 @@
         {% for auction in auctions %}
         <div class="col-md-4 mb-3">
             <div class="card border-0 shadow-sm">
+                {% if auction.photos and auction.photos[0] %}
+                <img src="{{ url_for('static', filename=auction.photos[0]) }}" class="card-img-top" alt="Фото товару">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/default.jpg') }}" class="card-img-top"
+                    alt="Фото товару">
+                {% endif %}
                 <div class="card-body">
                     <h5 class="card-title text-warning fw-bold">{{ auction.title }}</h5>
                     <p class="card-text text-muted">{{ auction.description }}</p>
