@@ -1,11 +1,22 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
+import os
 from app import db
 from app.models.auction import Auction
 from app.models.user import User
 from app.models.auction_participant import AuctionParticipant
 
 auction_bp = Blueprint('auction', __name__)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+UPLOAD_FOLDER = os.path.join('app', 'static', 'images', 'uploads')
+
+# Створення папки для завантаження фотографій, якщо вона не існує
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @auction_bp.route('/create', methods=['POST'])
 @login_required
@@ -14,10 +25,9 @@ def create_auction():
         flash("Тільки продавці можуть створювати аукціони.", "error")
         return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
-    data = request.form
-    title = data.get('title')
-    description = data.get('description')
-    starting_price = data.get('starting_price')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    starting_price = request.form.get('starting_price')
 
     if not title or not description or not starting_price:
         flash("Усі поля обов'язкові.", "error")
@@ -29,12 +39,24 @@ def create_auction():
         flash("Ціна повинна бути числом.", "error")
         return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
+    # Завантаження фотографій
+    photos = []
+    if 'photos' in request.files:
+        files = request.files.getlist('photos')
+        for file in files:
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(filepath)
+                photos.append(f"images/uploads/{filename}")
+
     try:
         new_auction = Auction(
             title=title,
             description=description,
             starting_price=starting_price,
-            seller_id=current_user.id
+            seller_id=current_user.id,
+            photos=photos
         )
         db.session.add(new_auction)
         db.session.commit()
@@ -152,4 +174,3 @@ def view_auction(auction_id):
         db.session.rollback()
         print(f"Помилка перегляду аукціону: {e}")
         return jsonify({"error": "Не вдалося оновити перегляд"}), 500
-
