@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
@@ -90,11 +90,9 @@ def auction_detail(auction_id):
                 return jsonify({"error": "Недостатньо коштів на балансі"}), 400
 
             buyer = User.query.get(current_user.id)
-            seller = User.query.get(auction.seller_id)
 
             # Транзакція участі
             buyer.deduct_balance(entry_price)
-            seller.add_balance(entry_price)
 
             auction.total_participants += 1
             auction.current_price -= entry_price
@@ -152,11 +150,8 @@ def view_auction(auction_id):
         if not current_user.can_afford(view_price):
             return jsonify({"error": "Недостатньо коштів на балансі для перегляду"}), 400
 
-        # Списання коштів та оновлення заробітку
-        current_user.deduct_balance(view_price)  # Використання метода deduct_balance
-        admin = User.query.filter_by(is_admin=True).first()
-        if admin:
-            admin.add_balance(view_price)  # Додаємо до балансу адміністратора
+        # Списання коштів
+        current_user.deduct_balance(view_price)
 
         # Позначаємо, що користувач переглянув ціну
         participant.mark_viewed_price()
@@ -175,7 +170,6 @@ def view_auction(auction_id):
         print(f"Помилка перегляду аукціону: {e}")
         return jsonify({"error": "Не вдалося оновити перегляд"}), 500
 
-
 @auction_bp.route('/close/<int:auction_id>', methods=['POST'])
 @login_required
 def close_auction(auction_id):
@@ -183,42 +177,47 @@ def close_auction(auction_id):
 
     if not auction:
         flash("Аукціон не знайдено.", "error")
-        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     if not auction.is_active:
         flash("Цей аукціон вже закрито.", "info")
-        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     # Перевірка, чи користувач є учасником аукціону
     participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
     if not participant or not participant.has_paid_entry:
         flash("Ви не можете закрити аукціон, оскільки не брали участь у ньому.", "error")
-        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     # Перевірка, чи у користувача достатньо коштів
     if current_user.balance < auction.current_price:
         flash("Недостатньо коштів для закриття аукціону.", "error")
-        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     try:
+        # Розрахунок загального заробітку продавця
+        total_entry_payments = auction.total_participants * auction.starting_price * 0.01
+        total_revenue = total_entry_payments + auction.current_price
+
         # Списання коштів з балансу покупця
         buyer = current_user
         seller = User.query.get(auction.seller_id)
 
         buyer.deduct_balance(auction.current_price)
-        seller.add_balance(auction.current_price)
+        seller.add_balance(total_revenue)
 
         # Оновлення статусу аукціону
         auction.is_active = False
         auction.winner_id = buyer.id  # Зберігаємо ідентифікатор переможця
+        auction.total_earnings = total_revenue  # Зберігаємо заробіток аукціону
 
         db.session.commit()
 
         flash("Аукціон успішно закрито! Товар належить вам.", "success")
-        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     except Exception as e:
         db.session.rollback()
         print(f"Помилка закриття аукціону: {e}")
         flash("Не вдалося закрити аукціон. Спробуйте пізніше.", "error")
-        return redirect(url_for('auction.auction_detail', auction_id=auction_id))
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
