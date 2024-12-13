@@ -146,17 +146,23 @@ def view_auction(auction_id):
                 "final_price": auction.current_price
             }), 200
 
-        # Перевірка балансу
+        # Перевірка балансу покупця
         if not current_user.can_afford(view_price):
             return jsonify({"error": "Недостатньо коштів на балансі для перегляду"}), 400
 
-        # Списання коштів
+        # Списання коштів у покупця
         current_user.deduct_balance(view_price)
+
+        # Знаходимо адміністратора
+        admin = User.query.filter_by(is_admin=True).first()
+        if admin:
+            # Додаємо кошти на баланс адміністратора
+            admin.add_balance(view_price)
 
         # Позначаємо, що користувач переглянув ціну
         participant.mark_viewed_price()
 
-        # Збереження змін
+        # Фіксуємо зміни
         db.session.commit()
 
         return jsonify({
@@ -169,6 +175,7 @@ def view_auction(auction_id):
         db.session.rollback()
         print(f"Помилка перегляду аукціону: {e}")
         return jsonify({"error": "Не вдалося оновити перегляд"}), 500
+
 
 @auction_bp.route('/close/<int:auction_id>', methods=['POST'])
 @login_required
