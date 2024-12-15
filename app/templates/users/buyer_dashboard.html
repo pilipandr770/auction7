@@ -29,7 +29,7 @@
     </div>
 
     <!-- Список доступних аукціонів -->
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 mb-5">
         <div class="card-body">
             <h3 class="card-title text-secondary">Доступні аукціони</h3>
             {% if auctions %}
@@ -45,6 +45,13 @@
                                 {{ 'Активний' if auction.is_active else 'Закритий' }}
                             </strong>
                         </p>
+                        {% if not auction.is_active and auction.seller %}
+                        <p><strong>Продавець:</strong></p>
+                        <ul>
+                            <li><strong>Ім'я:</strong> {{ auction.seller.username }}</li>
+                            <li><strong>Email:</strong> {{ auction.seller.email }}</li>
+                        </ul>
+                        {% endif %}
                     </div>
                     {% if auction.is_active %}
                     <div class="btn-group">

@@ -70,6 +70,13 @@
                             {{ auction.total_earnings | round(2) }} грн
                         </p>
                         <p><strong>Кількість учасників:</strong> {{ auction.total_participants }}</p>
+                        {% if auction.winner %}
+                        <p><strong>Переможець:</strong></p>
+                        <ul>
+                            <li><strong>Ім'я:</strong> {{ auction.winner.username }}</li>
+                            <li><strong>Email:</strong> {{ auction.winner.email }}</li>
+                        </ul>
+                        {% endif %}
                         {% endif %}
                     </div>
                 </li>

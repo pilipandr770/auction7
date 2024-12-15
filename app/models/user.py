@@ -3,7 +3,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from sqlalchemy.orm import validates
 
-
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
@@ -91,6 +90,7 @@ class User(UserMixin, db.Model):
         - Списує кошти з балансу покупця.
         - Додає кошти на баланс продавця.
         - Оновлює дані аукціону.
+        - Генерує повідомлення для покупця та продавця.
         """
         if not auction.is_active:
             raise ValueError("Аукціон вже закритий.")
@@ -106,6 +106,14 @@ class User(UserMixin, db.Model):
         # Завершуємо аукціон
         auction.close_auction(winner_id=buyer.id)
         db.session.commit()
+
+        # Генеруємо повідомлення для продавця
+        seller_message = f"Ваш аукціон '{auction.title}' був закритий. Переможець: {buyer.username}, Email: {buyer.email}."
+        print(f"[INFO] Повідомлення продавцю: {seller_message}")
+
+        # Генеруємо повідомлення для покупця
+        buyer_message = f"Ви виграли аукціон '{auction.title}'. Продавець: {self.username}, Email: {self.email}."
+        print(f"[INFO] Повідомлення покупцю: {buyer_message}")
 
     @validates('user_type')
     def validate_user_type(self, key, value):

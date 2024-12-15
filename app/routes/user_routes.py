@@ -191,3 +191,16 @@ def close_auction(auction_id):
         print(f"Помилка закриття аукціону: {e}")
         flash("Не вдалося закрити аукціон. Спробуйте пізніше.", "error")
         return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+@user_bp.route('/seller_contact/<int:seller_id>', methods=['GET'])
+@login_required
+def seller_contact(seller_id):
+    """
+    Відображає контактну інформацію продавця для покупця.
+    """
+    seller = User.query.get(seller_id)
+    if not seller or seller.user_type != 'seller':
+        flash("Продавця не знайдено.", "error")
+        return redirect(url_for('user.buyer_dashboard', email=current_user.email))
+
+    return render_template('users/seller_contact.html', seller=seller)

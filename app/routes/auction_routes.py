@@ -202,26 +202,31 @@ def close_auction(auction_id):
         return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     try:
-        # Розрахунок загального заробітку продавця
-        total_entry_payments = auction.total_participants * auction.starting_price * 0.01
-        total_revenue = total_entry_payments + auction.current_price
-
-        # Списання коштів з балансу покупця
         buyer = current_user
         seller = User.query.get(auction.seller_id)
 
+        # Списання коштів з балансу покупця
         buyer.deduct_balance(auction.current_price)
+
+        # Додавання коштів на баланс продавця
+        total_entry_payments = auction.total_participants * auction.starting_price * 0.01
+        total_revenue = total_entry_payments + auction.current_price
         seller.add_balance(total_revenue)
 
-        # Оновлення статусу аукціону
+        # Закриття аукціону
         auction.is_active = False
-        auction.winner_id = buyer.id  # Зберігаємо ідентифікатор переможця
-        auction.total_earnings = total_revenue  # Зберігаємо заробіток аукціону
-
+        auction.winner_id = buyer.id
+        auction.total_earnings = total_revenue
         db.session.commit()
 
-        flash("Аукціон успішно закрито! Товар належить вам.", "success")
-        return redirect(url_for('user.seller_dashboard', email=current_user.email))
+        # Відображення повідомлень
+        if current_user.user_type == "seller":
+            flash(f"Ваш товар продано. Покупець: {buyer.username}, Email: {buyer.email}.", "info")
+            return redirect(url_for('user.seller_dashboard', email=current_user.email))
+
+        if current_user.user_type == "buyer":
+            flash(f"Ви виграли аукціон! Продавець: {seller.username}, Email: {seller.email}.", "info")
+            return redirect(url_for('user.buyer_dashboard', email=current_user.email))
 
     except Exception as e:
         db.session.rollback()
