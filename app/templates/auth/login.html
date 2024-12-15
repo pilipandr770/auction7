@@ -10,16 +10,18 @@
         <h2 class="text-secondary fw-bold">Авторизація</h2>
     </div>
 
-    <!-- Відображення повідомлень з `flash` -->
+    <!-- Відображення повідомлень з `flash`, фільтруємо категорії -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div class="alert-container">
         {% for category, message in messages %}
+        {% if category in ["success", "error"] %} <!-- Фільтруємо тільки потрібні категорії -->
         <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show"
             role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        {% endif %}
         {% endfor %}
     </div>
     {% endif %}
