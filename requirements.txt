@@ -5,3 +5,5 @@ Flask-Migrate==4.0.7
 SQLAlchemy==2.0.36
 Flask-WTF
 WTForms
+web3
+dotenv

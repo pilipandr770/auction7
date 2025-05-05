@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
     platform_balance = db.Column(db.Float, default=0.0)  # Баланс платформи
     user_type = db.Column(db.String(10), nullable=False)  # "buyer", "seller", "admin"
     is_admin = db.Column(db.Boolean, default=False)  # Поле для адміністратора
+    wallet_address = db.Column(db.String(42), nullable=True)  # Адреса криптогаманця
 
     # Зв'язки
     auctions_created = db.relationship('Auction', foreign_keys='Auction.seller_id', backref='seller', lazy=True)

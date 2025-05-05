@@ -204,3 +204,17 @@ def seller_contact(seller_id):
         return redirect(url_for('user.buyer_dashboard', email=current_user.email))
 
     return render_template('users/seller_contact.html', seller=seller)
+
+@user_bp.route("/connect_wallet", methods=["GET", "POST"])
+@login_required
+def connect_wallet():
+    if request.method == "POST":
+        wallet_address = request.form.get("wallet_address")
+        if wallet_address and wallet_address.startswith("0x") and len(wallet_address) == 42:
+            current_user.wallet_address = wallet_address
+            db.session.commit()
+            flash("Гаманець підключено успішно!", "success")
+            return redirect(url_for("main.index"))
+        else:
+            flash("Некоректна адреса гаманця!", "danger")
+    return render_template("connect_wallet.html")
