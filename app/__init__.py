@@ -54,12 +54,14 @@ def create_app():
     from app.routes.auction_routes import auction_bp
     from app.routes.main_routes import main_bp
     from app.routes.admin_routes import admin_bp
+    from assistans.routes import assistant_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(auction_bp, url_prefix='/auction')
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(assistant_bp)
 
     # Реєстрація обробників помилок
     register_error_handlers(app)

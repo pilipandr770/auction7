@@ -1,0 +1,74 @@
+2025-05-06 21:00:32,290 INFO [USER] Привіт, щодо роботи все нормально одяг.
+2025-05-06 21:00:32,666 INFO [THREAD] created: thread_xoav268X5rMn79HBiFFnY0rd
+2025-05-06 21:00:33,119 INFO [THREAD] message sent: Привіт, щодо роботи все нормально одяг.
+2025-05-06 21:00:34,048 INFO [RUN] started: run_D0CgDIAR3Yrdmmowsld92V9e
+2025-05-06 21:00:34,361 INFO [RUN] status: queued
+2025-05-06 21:00:35,864 INFO [RUN] status: in_progress
+2025-05-06 21:00:37,188 INFO [RUN] status: completed
+2025-05-06 21:00:37,419 INFO [MESSAGES] count: 2
+2025-05-06 21:00:37,419 INFO [ASSISTANT] Привіт, щодо роботи все нормально одяг.
+2025-05-06 21:00:37,420 ERROR [ERROR] 
+
+You tried to access openai.Audio, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+Traceback (most recent call last):
+  File "C:\Users\ПК\auction7\auction\assistans\routes.py", line 57, in ask
+    audio_path = synthesize(reply)
+  File "C:\Users\ПК\auction7\auction\assistans\tts_service.py", line 9, in synthesize
+    response = openai.Audio.create(
+  File "C:\Users\ПК\auction7\venv\lib\site-packages\openai\lib\_old_api.py", line 39, in __call__
+    raise APIRemovedInV1(symbol=self._symbol)
+openai.lib._old_api.APIRemovedInV1: 
+
+You tried to access openai.Audio, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-05-06 21:05:18,356 INFO [USER] Привіт слиж меня наконец може отвечать.
+2025-05-06 21:05:18,825 INFO [THREAD] created: thread_WC3uX62bxsd8rMlhXvCGmvkI
+2025-05-06 21:05:19,240 INFO [THREAD] message sent: Привіт слиж меня наконец може отвечать.
+2025-05-06 21:05:20,206 INFO [RUN] started: run_KG8bScTQ8m4KfteMjbnl3DBv
+2025-05-06 21:05:20,538 INFO [RUN] status: queued
+2025-05-06 21:05:21,846 INFO [RUN] status: completed
+2025-05-06 21:05:22,097 INFO [MESSAGES] count: 2
+2025-05-06 21:05:22,097 INFO [ASSISTANT] Привіт слиж меня наконец може отвечать.
+2025-05-06 21:05:24,192 INFO [AUDIO] assistans/static/audio/35039271-4faa-47ed-b1b5-c446293eb802.mp3
+2025-05-06 21:39:10,781 INFO [USER] Привіт тс лише жменя.
+2025-05-06 21:39:11,527 INFO [THREAD] created: thread_b3pxJchcxESntJpVBzPF4V5o
+2025-05-06 21:39:12,266 INFO [THREAD] message sent: Привіт тс лише жменя.
+2025-05-06 21:39:18,629 INFO [RUN] started: run_78yAyMfepNXpJtt9ApbiUcoR
+2025-05-06 21:39:19,015 INFO [RUN] status: queued
+2025-05-06 21:39:20,406 INFO [RUN] status: in_progress
+2025-05-06 21:39:22,145 INFO [RUN] status: completed
+2025-05-06 21:39:22,683 INFO [MESSAGES] count: 2
+2025-05-06 21:39:22,683 INFO [ASSISTANT] Привіт! Чим можу допомогти?
+2025-05-06 21:39:31,558 INFO [AUDIO] assistans/static/audio/89dbba60-7948-4787-80d6-90d785a28a59.mp3
+2025-05-06 21:39:58,007 INFO [USER] привет,ти чуеш мене?
+2025-05-06 21:39:58,433 INFO [THREAD] created: thread_9JXYVotbX88S4rDoFqwHe1fS
+2025-05-06 21:39:58,886 INFO [THREAD] message sent: привет,ти чуеш мене?
+2025-05-06 21:39:59,770 INFO [RUN] started: run_WZIfRUBBW37vmHvp46mV3MOG
+2025-05-06 21:40:00,157 INFO [RUN] status: queued
+2025-05-06 21:40:01,537 INFO [RUN] status: in_progress
+2025-05-06 21:40:03,360 INFO [RUN] status: completed
+2025-05-06 21:40:03,843 INFO [MESSAGES] count: 2
+2025-05-06 21:40:03,843 INFO [ASSISTANT] Привіт! Так, я чую вас. Як можу допомогти з аукціоном?
+2025-05-06 21:40:05,487 INFO [AUDIO] assistans/static/audio/fde4b3a9-2563-4bee-844d-a3912042bb8e.mp3
+2025-05-06 21:43:25,380 INFO [USER] цей текстовий чат теж працює?
+2025-05-06 21:43:26,108 INFO [THREAD] created: thread_L2CgRAa2MCcIG1QSXfFEiCgb
+2025-05-06 21:43:27,018 INFO [THREAD] message sent: цей текстовий чат теж працює?
+2025-05-06 21:43:28,411 INFO [RUN] started: run_QvrZPNhahUfRU4kNg86fU4TU
+2025-05-06 21:43:29,101 INFO [RUN] status: queued
+2025-05-06 21:43:30,633 INFO [RUN] status: in_progress
+2025-05-06 21:43:32,073 INFO [RUN] status: completed
+2025-05-06 21:43:32,395 INFO [MESSAGES] count: 2
+2025-05-06 21:43:32,395 INFO [ASSISTANT] Так, цей текстовий чат теж працює. Можете ставити свої питання!
+2025-05-06 21:43:35,495 INFO [AUDIO] assistans/static/audio/b1d0ef7f-b941-478d-ab69-5ee9c14f96ef.mp3

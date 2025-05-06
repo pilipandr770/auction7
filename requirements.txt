@@ -7,3 +7,5 @@ Flask-WTF
 WTForms
 web3
 dotenv
+openai>=1.0.0
+openai-whisper

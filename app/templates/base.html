@@ -72,6 +72,98 @@
         </div>
     </footer>
 
+    <!-- Віджет асистента OpenAI (чат у правому нижньому куті) -->
+    <div id="assistant-widget" style="position:fixed;bottom:24px;right:24px;z-index:9999;">
+        <button id="assistant-open-btn" class="btn btn-primary rounded-circle shadow" style="width:56px;height:56px;font-size:2em;">
+            <span aria-label="Чат-бот" title="Чат-бот">💬</span>
+        </button>
+        <div id="assistant-chat" class="card shadow" style="display:none;width:340px;max-width:90vw;">
+            <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+                <span>AI Асистент</span>
+                <button type="button" class="btn-close btn-close-white" id="assistant-close-btn"></button>
+            </div>
+            <div class="card-body p-2" style="height:260px;overflow-y:auto;" id="assistant-messages">
+                <div class="text-muted small">Вітаю! Я допоможу вам з питаннями щодо аукціону.</div>
+            </div>
+            <div class="card-footer p-2">
+                <form id="assistant-form" class="d-flex gap-2">
+                    <input type="text" class="form-control" id="assistant-input" placeholder="Ваше питання..." autocomplete="off">
+                    <button class="btn btn-primary" type="submit">&rarr;</button>
+                    <button type="button" id="assistant-voice-btn" class="btn btn-outline-secondary" title="Голосовий ввід"><span id="assistant-voice-ico">🎤</span></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Віджет асистента: відкриття/закриття
+    const widget = document.getElementById('assistant-widget');
+    const openBtn = document.getElementById('assistant-open-btn');
+    const chat = document.getElementById('assistant-chat');
+    const closeBtn = document.getElementById('assistant-close-btn');
+    openBtn.onclick = () => { chat.style.display = 'block'; openBtn.style.display = 'none'; };
+    closeBtn.onclick = () => { chat.style.display = 'none'; openBtn.style.display = 'block'; };
+    // Відправка повідомлення
+    document.getElementById('assistant-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const input = document.getElementById('assistant-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+        const messages = document.getElementById('assistant-messages');
+        messages.innerHTML += `<div class='text-end mb-1'><span class='badge bg-secondary'>${msg}</span></div>`;
+        input.value = '';
+        messages.scrollTop = messages.scrollHeight;
+        // Відправка на бекенд
+        const resp = await fetch('/assistans/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg })
+        });
+        const data = await resp.json();
+        if (data.response) {
+            messages.innerHTML += `<div class='mb-1'><span class='badge bg-primary'>${data.response}</span></div>`;
+            // Відтворення голосу, якщо є
+            if(data.audio) {
+                const audio = new Audio(data.audio);
+                audio.play();
+            }
+        } else {
+            messages.innerHTML += `<div class='mb-1 text-danger'>Помилка: ${data.error || 'Невідома помилка'}</div>`;
+        }
+        messages.scrollTop = messages.scrollHeight;
+    };
+    // Голосовий ввід через Web Speech API
+    const voiceBtn = document.getElementById('assistant-voice-btn');
+    const voiceIco = document.getElementById('assistant-voice-ico');
+    let recognizing = false;
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = 'uk-UA';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.onstart = () => { recognizing = true; voiceIco.textContent = '🔴'; };
+        recognition.onend = () => { recognizing = false; voiceIco.textContent = '🎤'; };
+        recognition.onerror = () => { recognizing = false; voiceIco.textContent = '🎤'; };
+        recognition.onresult = function(event) {
+            const text = event.results[0][0].transcript;
+            document.getElementById('assistant-input').value = text;
+            document.getElementById('assistant-form').dispatchEvent(new Event('submit'));
+        };
+        voiceBtn.onclick = function(e) {
+            e.preventDefault();
+            if (recognizing) {
+                recognition.stop();
+                return;
+            }
+            recognition.start();
+        };
+    } else {
+        voiceBtn.disabled = true;
+        voiceBtn.title = 'Голосовий ввід не підтримується у вашому браузері';
+    }
+    </script>
+    <!-- Кінець віджета асистента -->
+
     <!-- Bootstrap Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
