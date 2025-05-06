@@ -12,6 +12,11 @@
         <p>Баланс: <strong><span id="balance-display">{{ user.balance }}</span> грн</strong></p>
     </div>
 
+    <!-- Інформація про криптофункції -->
+    <div class="alert alert-info mb-4">
+        <b>Криптофункції:</b> Ви можете оплачувати участь та перегляд ціни через MATIC (Polygon). Після отримання товару підтвердьте це для виплати продавцю!
+    </div>
+
     <!-- Форма для поповнення балансу -->
     <div class="card shadow-sm border-0 mb-5">
         <div class="card-body">
@@ -45,6 +50,10 @@
                                 {{ 'Активний' if auction.is_active else 'Закритий' }}
                             </strong>
                         </p>
+                        {% if not auction.is_active and auction.seller and auction.winner and auction.winner.id == user.id %}
+                        <button class="btn btn-success btn-sm mt-2 confirm-escrow-btn" data-auction-id="{{ auction.id }}" data-amount="{{ auction.total_earnings }}">Підтвердити отримання (escrow)</button>
+                        <span class="text-muted small ms-2">Після підтвердження кошти перейдуть продавцю</span>
+                        {% endif %}
                         {% if not auction.is_active and auction.seller %}
                         <p><strong>Продавець:</strong></p>
                         <ul>
@@ -54,10 +63,10 @@
                         {% endif %}
                     </div>
                     {% if auction.is_active %}
-                    <div class="btn-group">
-                        <a href="/auction/{{ auction.id }}" class="btn btn-outline-primary">Деталі</a>
-                        <button class="btn btn-outline-warning view-auction-btn"
-                            data-auction-id="{{ auction.id }}">Переглянути ціну (1€)</button>
+                    <div class="btn-group flex-column">
+                        <button class="btn btn-outline-primary btn-sm pay-entry-btn" data-auction-id="{{ auction.id }}" data-amount="{{ auction.starting_price * 0.01 }}">Оплатити участь (MATIC)</button>
+                        <button class="btn btn-outline-warning btn-sm mt-1 pay-view-btn" data-amount="1">Оплатити перегляд (MATIC)</button>
+                        <a href="/auction/{{ auction.id }}" class="btn btn-outline-secondary btn-sm mt-1">Деталі</a>
                     </div>
                     {% endif %}
                 </li>
@@ -143,6 +152,102 @@
             } catch (error) {
                 console.error('Помилка:', error);
                 alert('Не вдалося отримати деталі аукціону. Спробуйте пізніше.');
+            }
+        });
+    });
+
+    // Криптооплата участі
+    document.querySelectorAll('.pay-entry-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const auctionId = btn.getAttribute('data-auction-id');
+            const amount = btn.getAttribute('data-amount');
+            if(confirm(`Оплатити участь у MATIC (${amount})?`)) {
+                const formData = new FormData();
+                formData.append('auction_id', auctionId);
+                formData.append('amount', amount);
+                const resp = await fetch('/user/crypto_pay/entry', {method:'POST', body:formData});
+                const data = await resp.json();
+                if (data.tx_hash) {
+                    // Після оплати отримуємо поточну ціну та учасників
+                    const viewResp = await fetch(`/auction/view/${auctionId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include'
+                    });
+                    if (viewResp.ok) {
+                        const viewData = await viewResp.json();
+                        showAuctionToast(viewData.participants, viewData.final_price, data.tx_hash);
+                    } else {
+                        alert(`Транзакція відправлена! TX: ${data.tx_hash}`);
+                    }
+                } else {
+                    alert(data.error || 'Помилка');
+                }
+            }
+        });
+    });
+
+    // Криптооплата перегляду
+    document.querySelectorAll('.pay-view-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            let li = btn.closest('li');
+            let auctionId = li && li.querySelector('.pay-entry-btn') ? li.querySelector('.pay-entry-btn').getAttribute('data-auction-id') : null;
+            const amount = btn.getAttribute('data-amount');
+            if(confirm(`Оплатити перегляд у MATIC (${amount})?`)) {
+                const formData = new FormData();
+                formData.append('amount', amount);
+                const resp = await fetch('/user/crypto_pay/view', {method:'POST', body:formData});
+                const data = await resp.json();
+                if (data.tx_hash && auctionId) {
+                    const viewResp = await fetch(`/auction/view/${auctionId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include'
+                    });
+                    if (viewResp.ok) {
+                        const viewData = await viewResp.json();
+                        showAuctionToast(viewData.participants, viewData.final_price, data.tx_hash);
+                    } else {
+                        alert(`Транзакція відправлена! TX: ${data.tx_hash}`);
+                    }
+                } else {
+                    alert(data.error || 'Помилка');
+                }
+            }
+        });
+    });
+
+    // Функція для показу toast з кількістю учасників і ціною
+    function showAuctionToast(participants, final_price, tx_hash) {
+        // Видаляємо попередній toast, якщо він ще є
+        document.querySelectorAll('.auction-toast').forEach(t => t.remove());
+        const toast = document.createElement('div');
+        toast.className = 'toast auction-toast align-items-center text-bg-success border-0 position-fixed top-50 start-50 translate-middle show';
+        toast.style.zIndex = 1050;
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    Учасників: <b>${participants}</b>, Поточна ціна: <b>${final_price}</b> грн<br>TX: <span style="font-size:0.9em">${tx_hash}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+
+    // Підтвердження escrow
+    document.querySelectorAll('.confirm-escrow-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const auctionId = btn.getAttribute('data-auction-id');
+            const amount = btn.getAttribute('data-amount');
+            if(confirm('Підтвердити отримання товару? Кошти перейдуть продавцю!')) {
+                const formData = new FormData();
+                formData.append('auction_id', auctionId);
+                formData.append('amount', amount);
+                const resp = await fetch('/user/crypto_pay/release', {method:'POST', body:formData});
+                const data = await resp.json();
+                alert(data.tx_hash ? `Кошти переведено продавцю! TX: ${data.tx_hash}` : (data.error || 'Помилка'));
             }
         });
     });

@@ -9,7 +9,7 @@ load_dotenv()
 
 POLYGON_RPC_URL = os.getenv("POLYGON_MAINNET_RPC_URL")
 TOKEN_CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")  # Тут адреса SimpleToken
-TOKEN_ABI_PATH = "./contracts/abi.json"
+TOKEN_ABI_PATH = os.path.join(os.path.dirname(__file__), "contracts", "abi.json")
 
 w3 = Web3(Web3.HTTPProvider(POLYGON_RPC_URL))
 
@@ -42,6 +42,17 @@ def calculate_discount(balance):
 
 
 def get_user_discount(user_address):
+    """
+    Повертає знижку для користувача за токеном.
+    Підказка: чим більше токенів на балансі, тим більша знижка.
+    Пороги:
+        100 000+ токенів — 50%
+        50 000+ токенів — 25%
+        10 000+ токенів — 10%
+        1 000+ токенів — 5%
+        100+ токенів — 1%
+        менше 100 — 0%
+    """
     balance = get_token_balance(user_address)
     discount = calculate_discount(balance)
     return discount

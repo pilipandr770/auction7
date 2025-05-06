@@ -4,6 +4,7 @@ from app import db
 from app.models.user import User
 from app.models.auction import Auction
 from app.models.auction_participant import AuctionParticipant
+from blockchain_payments.payment_matic import process_payment, send_to_escrow, send_to_admin, release_from_escrow
 
 user_bp = Blueprint('user', __name__)
 
@@ -218,3 +219,42 @@ def connect_wallet():
         else:
             flash("Некоректна адреса гаманця!", "danger")
     return render_template("connect_wallet.html")
+
+@user_bp.route('/crypto_pay/entry', methods=['POST'])
+@login_required
+def crypto_pay_entry():
+    auction_id = request.form.get('auction_id')
+    amount = float(request.form.get('amount'))
+    if not current_user.wallet_address:
+        return jsonify({'error': 'Підключіть гаманець'}), 400
+    # Надсилаємо платіж на escrow-гаманець
+    # Покупець підписує транзакцію своїм приватним ключем (через MetaMask або інший спосіб)
+    # Тут для прикладу: current_user має приватний ключ (НЕБЕЗПЕЧНО для продакшну, для тесту можна)
+    from_private_key = ''  # отримати приватний ключ покупця (тільки для тесту)
+    from_address = current_user.wallet_address
+    tx_hash = send_to_escrow(from_private_key, from_address, amount)
+    return jsonify({'tx_hash': tx_hash})
+
+@user_bp.route('/crypto_pay/view', methods=['POST'])
+@login_required
+def crypto_pay_view():
+    amount = float(request.form.get('amount'))
+    if not current_user.wallet_address:
+        return jsonify({'error': 'Підключіть гаманець'}), 400
+    # Надсилаємо платіж на гаманець адміністратора
+    from_private_key = ''  # отримати приватний ключ покупця (тільки для тесту)
+    from_address = current_user.wallet_address
+    tx_hash = send_to_admin(from_private_key, from_address, amount)
+    return jsonify({'tx_hash': tx_hash})
+
+@user_bp.route('/crypto_pay/release', methods=['POST'])
+@login_required
+def crypto_pay_release():
+    auction_id = request.form.get('auction_id')
+    amount = float(request.form.get('amount'))
+    auction = Auction.query.get(auction_id)
+    if not auction:
+        return jsonify({'error': 'Аукціон не знайдено'}), 404
+    # Переказ з escrow-гаманця на адресу продавця
+    tx_hash = release_from_escrow(auction.seller.wallet_address, amount)
+    return jsonify({'tx_hash': tx_hash})

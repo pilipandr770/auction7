@@ -1,4 +1,4 @@
-from flask import Flask, session
+from flask import Flask, session, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -7,6 +7,19 @@ from flask_login import LoginManager
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+
+def register_error_handlers(app):
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return render_template('errors/500.html'), 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        return render_template('errors/generic.html', error=e), 500
 
 def create_app():
     app = Flask(__name__)
@@ -47,5 +60,8 @@ def create_app():
     app.register_blueprint(auction_bp, url_prefix='/auction')
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    # Реєстрація обробників помилок
+    register_error_handlers(app)
 
     return app

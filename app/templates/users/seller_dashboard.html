@@ -20,6 +20,11 @@
         </div>
     </div>
 
+    <!-- Підказка про криптовиплати -->
+    <div class="alert alert-info mb-4">
+        <b>Криптофункції:</b> Виплати за аукціони надходять після підтвердження покупцем. Статус транзакцій можна перевірити у PolygonScan за TX hash.
+    </div>
+
     <!-- Форма створення аукціону -->
     <div class="card shadow-sm border-0 mb-5">
         <div class="card-body">
@@ -76,6 +81,9 @@
                             <li><strong>Ім'я:</strong> {{ auction.winner.username }}</li>
                             <li><strong>Email:</strong> {{ auction.winner.email }}</li>
                         </ul>
+                        <div class="alert alert-secondary p-2 mt-2">
+                            <b>Статус виплати:</b> Очікує підтвердження покупцем (escrow)
+                        </div>
                         {% endif %}
                         {% endif %}
                     </div>
