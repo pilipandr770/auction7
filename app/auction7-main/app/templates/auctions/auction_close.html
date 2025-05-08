@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}
+Закриття Аукціону
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <h1 class="text-secondary fw-bold">Аукціон завершено</h1>
+    <p class="text-muted fs-5 mt-3">Дякуємо за участь! Ось деталі закритого аукціону:</p>
+
+    <div class="card mt-4 border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-warning fw-bold">Деталі аукціону</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item bg-light text-muted">Назва: {{ auction.title }}</li>
+                <li class="list-group-item bg-light text-muted">Переможець: {{ auction.winner_name }}</li>
+                <li class="list-group-item bg-light text-muted">Ціна закриття: {{ auction.final_price }} грн</li>
+                <li class="list-group-item bg-light text-muted">Дата завершення: {{ auction.close_date }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="/" class="btn btn-secondary">Повернутися на головну</a>
+        <a href="/user/dashboard" class="btn btn-warning">До панелі користувача</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+Контакт продавця
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title text-secondary">Дані продавця</h2>
+            <p><strong>Ім'я:</strong> {{ seller.username }}</p>
+            <p><strong>Email:</strong> {{ seller.email }}</p>
+            {% if seller.phone %}
+            <p><strong>Телефон:</strong> {{ seller.phone }}</p>
+            {% endif %}
+            <p>Зв'яжіться з продавцем для отримання товару.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

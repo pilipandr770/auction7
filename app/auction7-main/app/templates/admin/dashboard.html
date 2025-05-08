@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}
+Адмін Панель
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center text-secondary">Адмін Панель</h1>
+
+    <!-- Баланс платформи -->
+    <section class="my-4">
+        <h2 class="text-secondary">Баланс платформи</h2>
+        <div class="alert alert-info">
+            <strong>Загальний баланс платформи:</strong> {{ admin_balance }} EUR
+        </div>
+    </section>
+
+    <!-- Список користувачів -->
+    <section class="my-4">
+        <h2 class="text-secondary">Список користувачів</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ім'я</th>
+                    <th>Email</th>
+                    <th>Баланс</th>
+                    <th>Тип користувача</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.balance }}</td>
+                    <td>{{ user.user_type }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Список аукціонів -->
+    <section class="my-4">
+        <h2 class="text-secondary">Список аукціонів</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Назва</th>
+                    <th>Опис</th>
+                    <th>Поточна ціна</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for auction in auctions %}
+                <tr>
+                    <td>{{ auction.id }}</td>
+                    <td>{{ auction.title }}</td>
+                    <td>{{ auction.description }}</td>
+                    <td>{{ auction.current_price }}</td>
+                    <td>{{ 'Активний' if auction.is_active else 'Закритий' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

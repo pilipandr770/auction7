@@ -1,0 +1,17 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>Реєстрація продавця</h2>
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {{ form.company_name.label }} {{ form.company_name() }}<br>
+    {{ form.registration_number.label }} {{ form.registration_number() }}<br>
+    {{ form.country.label }} {{ form.country() }}<br>
+    {{ form.company_address.label }} {{ form.company_address() }}<br>
+    {{ form.tax_id.label }} {{ form.tax_id() }}<br>
+    {{ form.representative_name.label }} {{ form.representative_name() }}<br>
+    {{ form.representative_email.label }} {{ form.representative_email() }}<br>
+    {{ form.document.label }} {{ form.document() }}<br><br>
+    {{ form.submit() }}
+</form>
+{% endblock %}

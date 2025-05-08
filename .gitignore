@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtualenv
+venv/
+ENV/
+.env
+.env.*
+
+# VSCode
+.vscode/
+
+# Database
+instance/*.db
+instance/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Migrations
+migrations/versions/__pycache__/
+
+# Logs
+*.log
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Node/npm
+node_modules/
+
+# Test
+.coverage
+htmlcov/
+
+# Contracts build (if any)
+build/
+
+# Other
+*.bak
+*.swp
+*.tmp
+*.dll
+*.lib

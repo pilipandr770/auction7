@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Аукціонний Застосунок{% endblock %}</title>
+
+    <!-- Підключення Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Кастомні стилі -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+
+<body class="bg-light text-dark" style="font-family: 'Roboto', sans-serif;">
+
+    <header class="bg-secondary text-white py-3">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg navbar-dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand fw-bold" href="/">Аукціонний Застосунок</a>
+                    <div class="d-flex align-items-center w-100 justify-content-between">
+                        <!-- Центр: Соцмережі -->
+                        <div class="d-flex gap-2 align-items-center">
+                            <a href="https://t.me/your_channel" class="text-white fs-5" title="Telegram" target="_blank">
+                                <i class="bi bi-telegram" style="font-size:18px;"></i>
+                            </a>
+                            <a href="https://facebook.com/your_page" class="text-white fs-5" title="Facebook" target="_blank">
+                                <i class="bi bi-facebook" style="font-size:18px;"></i>
+                            </a>
+                            <a href="https://instagram.com/your_page" class="text-white fs-5" title="Instagram" target="_blank">
+                                <i class="bi bi-instagram" style="font-size:18px;"></i>
+                            </a>
+                            <a href="https://tiktok.com/@your_page" class="text-white fs-5" title="TikTok" target="_blank">
+                                <i class="bi bi-tiktok" style="font-size:18px;"></i>
+                            </a>
+                            <a href="mailto:info@yourdomain.com" class="text-white fs-5 ms-1" title="Пошта">
+                                <i class="bi bi-envelope" style="font-size:18px;"></i>
+                            </a>
+                        </div>
+                        <!-- Справа: Віджет гаманця -->
+                        <div class="d-flex align-items-center ms-3">
+                            {% if current_user.is_authenticated %}
+                                {% if current_user.wallet_address %}
+                                    <div class="wallet-widget d-flex align-items-center bg-white px-2 py-1 rounded shadow-sm" style="gap: 8px; flex-direction: column; align-items: flex-start;">
+                                        <div class="d-flex align-items-center" style="gap: 8px;">
+                                            <span style="font-size: 1.2em; color: #28a745;">&#128179;</span>
+                                            <span id="wallet-address-short" class="fw-bold text-dark" style="cursor:pointer;" title="Скопіювати адресу">
+                                                {{ current_user.wallet_address[:6] }}...{{ current_user.wallet_address[-4:] }}
+                                            </span>
+                                            <span id="wallet-copy-status" class="text-success small ms-1" style="display:none;">Скопійовано!</span>
+                                        </div>
+                                        {% if user_discount is not none %}
+                                            <div class="small text-success fw-bold mt-1" style="font-size: 0.95em;">
+                                                Знижка за токен: <span style="color:#d5a021;">-{{ user_discount }}%</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <button onclick="connectWallet()" class="btn btn-outline-warning btn-sm ms-2">Підключити гаманець &#128179;</button>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container py-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-dark text-white py-3 mt-auto">
+        <div class="container text-center">
+            <p class="mb-1">&copy; 2024 Аукціонний Застосунок. Всі права захищені.</p>
+            <div class="mb-0 d-flex justify-content-center gap-2">
+                <a href="{{ url_for('main.privacy') }}" class="btn btn-outline-warning btn-sm">Політика конфіденційності</a>
+                <a href="{{ url_for('main.impressum') }}" class="btn btn-outline-warning btn-sm">Імпресум</a>
+                <a href="{{ url_for('main.contacts') }}" class="btn btn-outline-warning btn-sm">Контакти</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Віджет асистента OpenAI (чат у правому нижньому куті) -->
+    <div id="assistant-widget" style="position:fixed;bottom:24px;right:24px;z-index:9999;">
+        <button id="assistant-open-btn" class="btn btn-primary rounded-circle shadow" style="width:56px;height:56px;font-size:2em;">
+            <span aria-label="Чат-бот" title="Чат-бот">💬</span>
+        </button>
+        <div id="assistant-chat" class="card shadow" style="display:none;width:340px;max-width:90vw;">
+            <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+                <span>AI Асистент</span>
+                <button type="button" class="btn-close btn-close-white" id="assistant-close-btn"></button>
+            </div>
+            <div class="card-body p-2" style="height:260px;overflow-y:auto;" id="assistant-messages">
+                <div class="text-muted small">Вітаю! Я допоможу вам з питаннями щодо аукціону.</div>
+            </div>
+            <div class="card-footer p-2">
+                <form id="assistant-form" class="d-flex gap-2">
+                    <input type="text" class="form-control" id="assistant-input" placeholder="Ваше питання..." autocomplete="off">
+                    <button class="btn btn-primary" type="submit">&rarr;</button>
+                    <button type="button" id="assistant-voice-btn" class="btn btn-outline-secondary" title="Голосовий ввід"><span id="assistant-voice-ico">🎤</span></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Віджет асистента: відкриття/закриття
+    const widget = document.getElementById('assistant-widget');
+    const openBtn = document.getElementById('assistant-open-btn');
+    const chat = document.getElementById('assistant-chat');
+    const closeBtn = document.getElementById('assistant-close-btn');
+    openBtn.onclick = () => { chat.style.display = 'block'; openBtn.style.display = 'none'; };
+    closeBtn.onclick = () => { chat.style.display = 'none'; openBtn.style.display = 'block'; };
+    // Відправка повідомлення
+    document.getElementById('assistant-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const input = document.getElementById('assistant-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+        const messages = document.getElementById('assistant-messages');
+        messages.innerHTML += `<div class='text-end mb-1'><span class='badge bg-secondary'>${msg}</span></div>`;
+        input.value = '';
+        messages.scrollTop = messages.scrollHeight;
+        // Відправка на бекенд
+        const resp = await fetch('/assistans/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg })
+        });
+        const data = await resp.json();
+        if (data.response) {
+            messages.innerHTML += `<div class='mb-1'><span class='badge bg-primary'>${data.response}</span></div>`;
+            // Відтворення голосу, якщо є
+            if(data.audio) {
+                const audio = new Audio(data.audio);
+                audio.play();
+            }
+        } else {
+            messages.innerHTML += `<div class='mb-1 text-danger'>Помилка: ${data.error || 'Невідома помилка'}</div>`;
+        }
+        messages.scrollTop = messages.scrollHeight;
+    };
+    // Голосовий ввід через Web Speech API
+    const voiceBtn = document.getElementById('assistant-voice-btn');
+    const voiceIco = document.getElementById('assistant-voice-ico');
+    let recognizing = false;
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = 'uk-UA';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.onstart = () => { recognizing = true; voiceIco.textContent = '🔴'; };
+        recognition.onend = () => { recognizing = false; voiceIco.textContent = '🎤'; };
+        recognition.onerror = () => { recognizing = false; voiceIco.textContent = '🎤'; };
+        recognition.onresult = function(event) {
+            const text = event.results[0][0].transcript;
+            document.getElementById('assistant-input').value = text;
+            document.getElementById('assistant-form').dispatchEvent(new Event('submit'));
+        };
+        voiceBtn.onclick = function(e) {
+            e.preventDefault();
+            if (recognizing) {
+                recognition.stop();
+                return;
+            }
+            recognition.start();
+        };
+    } else {
+        voiceBtn.disabled = true;
+        voiceBtn.title = 'Голосовий ввід не підтримується у вашому браузері';
+    }
+    </script>
+    <!-- Кінець віджета асистента -->
+
+    <!-- Bootstrap Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+
+</html>
