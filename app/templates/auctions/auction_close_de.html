@@ -1,0 +1,29 @@
+{% extends "base_de.html" %}
+
+{% block title %}
+Auktion beenden
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <h1 class="text-secondary fw-bold">Auktion abgeschlossen</h1>
+    <p class="text-muted fs-5 mt-3">Vielen Dank für Ihre Teilnahme! Hier sind die Details der geschlossenen Auktion:</p>
+
+    <div class="card mt-4 border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-warning fw-bold">Auktionsdetails</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item bg-light text-muted">Titel: {{ auction.title }}</li>
+                <li class="list-group-item bg-light text-muted">Gewinner: {{ auction.winner_name }}</li>
+                <li class="list-group-item bg-light text-muted">Abschlusspreis: {{ auction.final_price }} €</li>
+                <li class="list-group-item bg-light text-muted">Abschlussdatum: {{ auction.close_date }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="/de" class="btn btn-secondary">Zurück zur Startseite</a>
+        <a href="/de/user/dashboard" class="btn btn-warning">Zum Benutzer-Dashboard</a>
+    </div>
+</div>
+{% endblock %}

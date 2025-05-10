@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Вибір ролі - Аукціонний Застосунок{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="text-secondary fw-bold">Оберіть тип облікового запису</h2>
+        <p class="text-muted fs-5">Щоб користуватися платформою, оберіть свою роль. Ви зможете зареєструватися як покупець або продавець.</p>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-primary">Покупець</h3>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item bg-light text-muted">Беріть участь в аукціонах та вигравайте товари за вигідною ціною.</li>
+                        <li class="list-group-item bg-light text-muted">Миттєва реєстрація та простий інтерфейс.</li>
+                        <li class="list-group-item bg-light text-muted">Безпечна оплата через ескроу.</li>
+                        <li class="list-group-item bg-light text-muted">Підтримка AI-асистента для швидких відповідей.</li>
+                    </ul>
+                    <a href="{{ url_for('auth.register_buyer') }}" class="btn btn-outline-primary w-75">Зареєструватися як покупець</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-warning">Продавець</h3>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item bg-light text-muted">Створюйте власні аукціони та продавайте товари по всій Європі.</li>
+                        <li class="list-group-item bg-light text-muted">Доступ до аудиторії та прозора система виплат.</li>
+                        <li class="list-group-item bg-light text-muted">Верифікація для підвищення довіри покупців.</li>
+                        <li class="list-group-item bg-light text-muted">Захист угод через ескроу та підтримка AI-асистента.</li>
+                    </ul>
+                    <a href="{{ url_for('auth.register_seller') }}" class="btn btn-outline-warning w-75">Зареєструватися як продавець</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <div class="alert alert-info text-center">
+                <b>Покупець</b> — отримує доступ до аукціонів, може вигравати товари за зниженою ціною, оплачує лише після підтвердження отримання.<br>
+                <b>Продавець</b> — створює аукціони, проходить верифікацію, отримує виплати після підтвердження покупцем.<br>
+                Всі угоди захищені ескроу-системою та підтримуються AI-асистентом.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

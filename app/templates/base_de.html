@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Startseite - Auktionsplattform{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body class="bg-light text-dark" style="font-family: 'Roboto', sans-serif;">
+    <header class="bg-secondary text-white py-3">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg navbar-dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand fw-bold" href="/de">Auktionsplattform</a>
+                    <div class="d-flex align-items-center w-100 justify-content-between">
+                        <div class="d-flex gap-2 align-items-center">
+                            <a href="https://t.me/your_channel" class="text-white fs-5" title="Telegram" target="_blank">
+                                <i class="bi bi-telegram" style="font-size:18px;"></i>
+                            </a>
+                            <a href="https://facebook.com/your_page" class="text-white fs-5" title="Facebook" target="_blank">
+                                <i class="bi bi-facebook" style="font-size:18px;"></i>
+                            </a>
+                            <a href="https://instagram.com/your_page" class="text-white fs-5" title="Instagram" target="_blank">
+                                <i class="bi bi-instagram" style="font-size:18px;"></i>
+                            </a>
+                            <a href="https://tiktok.com/@your_page" class="text-white fs-5" title="TikTok" target="_blank">
+                                <i class="bi bi-tiktok" style="font-size:18px;"></i>
+                            </a>
+                            <a href="mailto:info@yourdomain.com" class="text-white fs-5 ms-1" title="E-Mail">
+                                <i class="bi bi-envelope" style="font-size:18px;"></i>
+                            </a>
+                        </div>
+                        <div class="dropdown ms-3">
+                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-translate"></i>
+                                <span class="ms-1">{{ lang|upper }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('main.set_language', lang='en') }}">English</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.set_language', lang='de') }}">Deutsch</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.set_language', lang='ua') }}">Українська</a></li>
+                            </ul>
+                        </div>
+                        <div class="d-flex align-items-center ms-3">
+                            {% if current_user.is_authenticated %}
+                                {% if current_user.wallet_address %}
+                                    <div class="wallet-widget d-flex align-items-center bg-white px-2 py-1 rounded shadow-sm" style="gap: 8px; flex-direction: column; align-items: flex-start;">
+                                        <div class="d-flex align-items-center" style="gap: 8px;">
+                                            <span style="font-size: 1.2em; color: #28a745;">&#128179;</span>
+                                            <span id="wallet-address-short" class="fw-bold text-dark" style="cursor:pointer;" title="Adresse kopieren">
+                                                {{ current_user.wallet_address[:6] }}...{{ current_user.wallet_address[-4:] }}
+                                            </span>
+                                            <span id="wallet-copy-status" class="text-success small ms-1" style="display:none;">Kopiert!</span>
+                                        </div>
+                                        {% if user_discount is not none %}
+                                            <div class="small text-success fw-bold mt-1" style="font-size: 0.95em;">
+                                                Token-Rabatt: <span style="color:#d5a021;">-{{ user_discount }}%</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <button onclick="connectWallet()" class="btn btn-outline-warning btn-sm ms-2">Wallet verbinden &#128179;</button>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <main class="container py-5">
+        {% block content %}
+        <div class="text-center py-5">
+            <h1 class="text-secondary fw-bold">Willkommen auf unserer Auktionsplattform!</h1>
+            <p class="text-muted fs-5">
+                Unser Service ermöglicht es Ihnen, Waren mit einem einzigartigen Auktionssystem zu verkaufen und zu kaufen. Registrieren Sie sich, um Teil unserer Community zu werden und starten Sie Ihr erstes Geschäft!
+            </p>
+        </div>
+        <section class="my-5">
+            <h2 class="text-center text-secondary fw-bold">🎉 Warum unser Auktionshaus?</h2>
+            <ul class="list-group list-group-flush mt-4">
+                <li class="list-group-item bg-light text-muted">Einzigartiges Auktionsmodell mit Preisreduzierung.</li>
+                <li class="list-group-item bg-light text-muted">Chance, Waren zu einem fairen Preis oder mit bis zu 80% Rabatt zu kaufen.</li>
+                <li class="list-group-item bg-light text-muted">Transparenz — der Preis wird durch die tatsächliche Aktivität der Käufer gebildet.</li>
+                <li class="list-group-item bg-light text-muted">Verifizierte Verkäufer, die den EU-Anforderungen entsprechen.</li>
+                <li class="list-group-item bg-light text-muted">Treuhandsystem — der Verkäufer erhält das Geld erst nach Ihrer Bestätigung.</li>
+            </ul>
+        </section>
+        <section class="my-5">
+            <h2 class="text-center text-secondary fw-bold">🚀 Vorteile für jeden Teilnehmer</h2>
+            <ul class="list-group list-group-flush mt-4">
+                <li class="list-group-item bg-light text-muted"><b>Käufer:</b> Einfacher Einstieg in Auktionen, Möglichkeit zu gewinnen und zu sparen.</li>
+                <li class="list-group-item bg-light text-muted"><b>Verkäufer:</b> Zugang zum Publikum, Einnahmen aus Eintrittszahlungen und sichere Auszahlungen.</li>
+            </ul>
+        </section>
+        <section class="my-5">
+            <h2 class="text-center text-secondary fw-bold">🪙 Funktionaler Token AUKTO — Ihr Bonus</h2>
+            <ul class="list-group list-group-flush mt-4">
+                <li class="list-group-item bg-light text-muted">Rabatte auf die Anzeige des aktuellen Preises in Auktionen.</li>
+                <li class="list-group-item bg-light text-muted">Erhöhte Gewinnchancen dank aktueller Informationen.</li>
+                <li class="list-group-item bg-light text-muted">Servicegebühren können mit Token bezahlt werden.</li>
+            </ul>
+            <p class="text-muted mt-2">Wir empfehlen, AUKTO zu kaufen und Ihre Wallet zu verbinden, um maximalen Nutzen zu erzielen!</p>
+        </section>
+        <section class="my-5">
+            <h2 class="text-center text-secondary fw-bold">🗣️ Sprachassistent immer dabei</h2>
+            <p class="text-muted text-center">
+                Sie wissen nicht, wo Sie anfangen sollen? Nutzen Sie den integrierten <b>KI-Assistenten</b> unten rechts:
+            </p>
+            <ul class="list-group list-group-flush mt-4">
+                <li class="list-group-item bg-light text-muted">Stellen Sie Fragen und erhalten Sie Antworten.</li>
+                <li class="list-group-item bg-light text-muted">Erfahren Sie mehr über Regeln und Möglichkeiten.</li>
+            </ul>
+        </section>
+        {% endblock %}
+    </main>
+    <footer class="bg-dark text-white py-3 mt-auto">
+        <div class="container text-center">
+            <p class="mb-1">&copy; 2024 Auktionsplattform. Alle Rechte vorbehalten.</p>
+            <div class="mb-0 d-flex justify-content-center gap-2">
+                <a href="{{ url_for('main.privacy_de') }}" class="btn btn-outline-warning btn-sm">Datenschutzerklärung</a>
+                <a href="{{ url_for('main.impressum_de') }}" class="btn btn-outline-warning btn-sm">Impressum</a>
+                <a href="{{ url_for('main.contacts_de') }}" class="btn btn-outline-warning btn-sm">Kontakt</a>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

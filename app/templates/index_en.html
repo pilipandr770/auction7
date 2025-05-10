@@ -1,0 +1,77 @@
+{% extends 'base_en.html' %}
+
+{% block title %}Home - Auction Platform{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="text-secondary fw-bold">Welcome to our Auction Platform!</h1>
+    <p class="text-muted fs-5">
+        Our service allows you to sell and buy goods using a unique auction system. Register to become part of our community and start your first deal!
+    </p>
+</div>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🎉 Why our auction?</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Unique auction model with price reduction.</li>
+        <li class="list-group-item bg-light text-muted">Chance to buy goods at a fair price or with up to 80% discount.</li>
+        <li class="list-group-item bg-light text-muted">Transparency — the price is formed by real buyer activity.</li>
+        <li class="list-group-item bg-light text-muted">Verified sellers who meet EU requirements.</li>
+        <li class="list-group-item bg-light text-muted">Escrow system — the seller receives money only after your confirmation.</li>
+    </ul>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🚀 Benefits for every participant</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted"><b>Buyers:</b> Easy entry into auctions, opportunity to win and save.</li>
+        <li class="list-group-item bg-light text-muted"><b>Sellers:</b> Access to audience, earnings from entry payments, and secure payouts.</li>
+    </ul>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🪙 AUKTO Functional Token — your bonus</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Discounts on viewing the current price in auctions.</li>
+        <li class="list-group-item bg-light text-muted">Increased chances to win thanks to up-to-date information.</li>
+        <li class="list-group-item bg-light text-muted">Service fees can be paid with tokens.</li>
+    </ul>
+    <p class="text-muted mt-2">We recommend buying AUKTO and connecting your wallet for maximum benefit!</p>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🗣️ Voice Assistant always nearby</h2>
+    <p class="text-muted text-center">
+        Not sure where to start? Use the built-in <b>AI Assistant</b> in the bottom right corner:
+    </p>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Ask questions and get answers.</li>
+        <li class="list-group-item bg-light text-muted">Learn about rules and features.</li>
+    </ul>
+</section>
+
+<section class="my-5 text-center">
+    <h2 class="text-secondary fw-bold">📢 Join now!</h2>
+    <p class="text-muted">Click the button below to register and start buying profitably today.</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="/auth/en/choose-role" class="btn btn-outline-light">Register</a>
+        <a href="/auth/en/login" class="btn btn-outline-primary">Login</a>
+    </div>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">Active auctions:</h2>
+    {% if auctions %}
+    <div class="row mt-4">
+        {% for auction in auctions %}
+        <div class="col-md-4 d-flex align-items-stretch">
+            {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else 'images/default.jpg' %}
+            {% include 'auctions/auction_card.html' with context %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted fs-5">There are currently no active auctions.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base_de.html" %}
+
+{% block title %}
+Käufer-Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary">Käufer-Dashboard</h1>
+        <p class="text-muted">Benutzername: <strong>{{ user.username }}</strong></p>
+        <p>Kontostand: <strong><span id="balance-display">{{ user.balance }}</span> €</strong></p>
+    </div>
+
+    <!-- Erinnerung für Gewinner zur Bestätigung des Erhalts -->
+    {% if pending_confirmations %}
+    <div class="alert alert-warning mb-4">
+        <b>Sie haben Auktionen gewonnen, bitte bestätigen Sie den Erhalt der Ware für die Auszahlung an den Verkäufer:</b>
+        <ul>
+            {% for auction in pending_confirmations %}
+            <li>
+                <b>{{ auction.title }}</b> —
+                <form method="POST" action="{{ url_for('user.confirm_receive', auction_id=auction.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-success btn-sm">Erhalt bestätigen</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Krypto-Funktionen Info -->
+    <div class="alert alert-info mb-4">
+        <b>Krypto-Funktionen:</b> Sie können die Teilnahme und Preisansicht mit MATIC (Polygon) bezahlen. Nach Erhalt der Ware bitte bestätigen, damit der Verkäufer ausgezahlt wird!
+    </div>
+
+    <!-- Wie man vorteilhaft und verantwortungsvoll an Auktionen teilnimmt -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-primary">Wie man vorteilhaft und verantwortungsvoll an Auktionen teilnimmt</h3>
+
+            <h5>🎯 Fairer Preis</h5>
+            <p>In unserem Auktionssystem haben Sie eine echte Chance, Waren günstiger zu kaufen. Nur geprüfte Verkäufer, die den EU-Regeln entsprechen, sind zugelassen. Die Auktion startet mit dem Marktpreis, der vom Verkäufer über Check24 geprüft werden kann. Mit jedem neuen Teilnehmer sinkt der Preis, und das Geld geht in ein Treuhandkonto. Während der Auktion haben Sie nur 5 Sekunden Zeit, um zu entscheiden – nehmen oder warten.</p>
+
+            <h5>🚪 Einstiegspreis und die Bedeutung der Wahl</h5>
+            <p>Der Einstiegspreis wird vom Verkäufer festgelegt. Er überschreitet nie 1% des Warenwerts und bleibt immer erschwinglich. Alle Zahlungen gehen auf das Treuhandkonto und werden erst nach Bestätigung des Warenerhalts durch den Käufer an den Verkäufer ausgezahlt.</p>
+
+            <h5>💡 Vorteile für Käufer</h5>
+            <p>Sie können die Ware sofort kaufen, indem Sie den Einstiegspreis zahlen und auf "Nehmen" klicken. Das ist der schnellste und sicherste Weg. Oder Sie warten auf einen niedrigeren Preis und sehen ihn mit der Preisansicht-Funktion (Rabatt für Token-Inhaber).</p>
+        </div>
+    </div>
+
+    <!-- Liste der verfügbaren Auktionen -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-secondary">Verfügbare Auktionen</h3>
+            {% if auctions %}
+            <div class="row">
+                {% for auction in auctions %}
+                <div class="col-md-4 d-flex align-items-stretch">
+                    {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else 'images/default.jpg' %}
+                    {% include 'auctions/auction_card.html' with context %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center">Keine verfügbaren Auktionen.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

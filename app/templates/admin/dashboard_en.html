@@ -1,0 +1,54 @@
+{% extends "base_en.html" %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center text-secondary">Admin Panel</h1>
+
+    <!-- Platform Balance -->
+    <section class="my-4">
+        <h2 class="text-secondary">Platform Balance</h2>
+        <div class="alert alert-info">
+        <a href="{{ url_for('admin.verify_sellers_en') }}" class="btn btn-outline-info">Verify Sellers</a>
+    
+            <strong>Total platform balance:</strong> {{ admin_balance }} EUR
+        </div>
+    </section>
+
+    <!-- User List -->
+    <section class="my-4">
+        <h2 class="text-secondary">User List</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Balance</th>
+                    <th>User Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.balance }}</td>
+                    <td>{{ user.user_type }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Auction List -->
+    <section class="my-4">
+        <h2 class="text-secondary">Auction List</h2>
+        <!-- ...existing code... -->
+    </section>
+</div>
+{% endblock %}

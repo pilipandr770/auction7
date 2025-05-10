@@ -1,0 +1,9 @@
+{% extends "base_de.html" %}
+{% block title %}Ein Fehler ist aufgetreten{% endblock %}
+{% block content %}
+<div class="container my-5 text-center">
+    <h1 class="display-4 text-danger">Ein Fehler ist aufgetreten</h1>
+    <p class="lead">{{ error }}</p>
+    <a href="/de" class="btn btn-outline-warning mt-3">Zur Startseite</a>
+</div>
+{% endblock %}

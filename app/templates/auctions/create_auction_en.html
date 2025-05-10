@@ -1,0 +1,50 @@
+{% extends "base_en.html" %}
+
+{% block title %}
+Create Auction
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Create Auction</h1>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form id="create-auction-form" enctype="multipart/form-data" method="POST" action="/en/auction/create">
+                <div class="mb-3">
+                    <label for="title" class="form-label text-secondary">Title:</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Enter title" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label text-secondary">Description:</label>
+                    <textarea id="description" name="description" class="form-control" rows="4" placeholder="Add description" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="starting_price" class="form-label text-secondary">Starting price:</label>
+                    <input type="number" id="starting_price" name="starting_price" class="form-control" placeholder="Enter starting price" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="photos" class="form-label text-secondary">Product photos:</label>
+                    <input type="file" id="photos" name="photos" class="form-control" multiple accept="image/*" onchange="updatePhotoPreview()">
+                    <small class="form-text text-muted">You can upload up to 10 photos. Select the main photo below.</small>
+                    <div id="photo-preview" class="row mt-2"></div>
+                    <input type="hidden" id="main_photo_idx" name="main_photo_idx" value="0">
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-warning">Create auction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// ...existing code...
+</script>
+{% endblock %}

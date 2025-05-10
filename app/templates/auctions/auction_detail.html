@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}
+Деталі аукціону
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Деталі аукціону</h1>
+    </div>
+
+    <nav class="mb-4">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link text-secondary" href="/">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary" href="/user/buyer/{{ current_user.email }}">Кабінет</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="/auth/logout">Вийти</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h2 class="card-title text-warning fw-bold">{{ auction.title }}</h2>
+            <p class="card-text"><strong>Опис:</strong> {{ auction.description }}</p>
+            <p class="card-text"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+            <p class="card-text"><strong>Продавець:</strong> {{ auction.seller.username }} ({{ auction.seller.email }})
+            </p>
+
+            <!-- Відображення фотографій -->
+            {% if auction.photos and auction.photos|length > 1 %}
+            <div class="mt-4">
+                <h5 class="text-secondary">Фотографії товару:</h5>
+                <div id="auctionDetailCarousel-{{ auction.id }}" class="carousel slide" data-bs-ride="carousel">
+                  <div class="carousel-inner">
+                    {% for photo in auction.photos %}
+                    <div class="carousel-item {% if loop.index0 == (auction.main_photo_idx or 0) %}active{% endif %}">
+                      <img src="{{ url_for('static', filename=photo) }}" class="d-block w-100 rounded" alt="Фото товару" style="max-height:350px;object-fit:contain;">
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button class="carousel-control-prev" type="button" data-bs-target="#auctionDetailCarousel-{{ auction.id }}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Попереднє</span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#auctionDetailCarousel-{{ auction.id }}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Наступне</span>
+                  </button>
+                </div>
+            </div>
+            {% elif auction.photos %}
+            <div class="mt-4">
+                <h5 class="text-secondary">Фотографії товару:</h5>
+                <img src="{{ url_for('static', filename=auction.photos[0]) }}" class="img-fluid rounded" alt="Фото товару" style="max-height:350px;object-fit:contain;">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        {% if auction.is_active %}
+        <form id="participate-form" method="POST" class="mb-4">
+            <div class="mb-3">
+                <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.01 }} грн</p>
+            </div>
+            <button type="submit" class="btn btn-warning w-100">Взяти участь</button>
+        </form>
+        <button id="view-details-btn" class="btn btn-secondary w-100">
+            Переглянути поточну ціну (<span id="view-price-btn-amount">1.00</span> €)
+            <span id="discount-badge" class="badge bg-success ms-2" style="display:none;"></span>
+        </button>
+        <form id="close-auction-form" method="POST"
+            action="{{ url_for('auction.close_auction', auction_id=auction.id) }}">
+            <button type="submit" class="btn btn-danger w-100 mt-3">Закрити аукціон</button>
+        </form>
+        {% else %}
+        <div class="alert alert-info mt-3">
+            <p>Цей аукціон завершено.</p>
+            <p><strong>Покупець:</strong> {{ auction.winner.username }} ({{ auction.winner.email }})</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="auction-details" class="mt-4" style="display: none;">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title text-secondary">Деталі аукціону</h5>
+                <p><strong>Кількість учасників:</strong> <span id="participants-count"></span></p>
+                <p><strong>Поточна ціна:</strong> <span id="current-price"></span> грн</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Обробка участі в аукціоні
+    document.getElementById('participate-form')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        try {
+            const response = await fetch(location.pathname, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('participants-count').textContent = data.participants;
+                document.getElementById('current-price').textContent = data.final_price;
+
+                const auctionDetails = document.getElementById('auction-details');
+                auctionDetails.style.display = 'block';
+
+                // Ховаємо інформацію через 5 секунд
+                setTimeout(() => {
+                    auctionDetails.style.display = 'none';
+                }, 5000);
+            } else {
+                const errorData = await response.json();
+                alert(`Помилка: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Помилка:', error);
+            alert('Не вдалося взяти участь в аукціоні. Спробуйте пізніше.');
+        }
+    });
+
+    // --- Динамічно оновлюємо ціну перегляду та знижку на кнопці ---
+    async function updateViewPriceBtn() {
+        // За замовчуванням 1.00
+        let price = 1.00;
+        let discount = 0;
+        try {
+            const resp = await fetch(`/auction/view/{{ auction.id }}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'include',
+                body: JSON.stringify({ preview: true }) // спец. прапорець для попереднього перегляду
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (typeof data.view_price !== 'undefined') price = data.view_price;
+                if (typeof data.discount_percent !== 'undefined') discount = data.discount_percent;
+            }
+        } catch (e) { /* ігноруємо */ }
+        document.getElementById('view-price-btn-amount').textContent = price.toFixed(2);
+        const badge = document.getElementById('discount-badge');
+        if (discount > 0) {
+            badge.textContent = `-${discount}%`;
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    updateViewPriceBtn();
+
+    // --- Оновлюємо відображення ціни після перегляду ---
+    document.getElementById('view-details-btn')?.addEventListener('click', async function () {
+        try {
+            const response = await fetch(`/auction/view/{{ auction.id }}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('participants-count').textContent = data.participants;
+                document.getElementById('current-price').textContent = data.final_price;
+                if (typeof data.view_price !== 'undefined') {
+                    document.getElementById('view-price-btn-amount').textContent = data.view_price.toFixed(2);
+                }
+                if (typeof data.discount_percent !== 'undefined') {
+                    const badge = document.getElementById('discount-badge');
+                    if (data.discount_percent > 0) {
+                        badge.textContent = `-${data.discount_percent}%`;
+                        badge.style.display = '';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+                const auctionDetails = document.getElementById('auction-details');
+                auctionDetails.style.display = 'block';
+                setTimeout(() => {
+                    auctionDetails.style.display = 'none';
+                }, 5000);
+            } else {
+                const errorData = await response.json();
+                alert(`Помилка: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Помилка:', error);
+            alert('Не вдалося оновити перегляд. Спробуйте пізніше.');
+        }
+    });
+</script>
+{% endblock %}

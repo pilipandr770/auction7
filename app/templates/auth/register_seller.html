@@ -1,0 +1,27 @@
+# register_seller.html
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Реєстрація продавця</h2>
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <ul>
+        {% for field, errors in form.errors.items() %}
+          {% for error in errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {{ form.username.label }} {{ form.username() }}<br>
+    {{ form.email.label }} {{ form.email() }}<br>
+    {{ form.password.label }} {{ form.password() }}<br>
+    {{ form.confirm_password.label }} {{ form.confirm_password() }}<br>
+    {{ form.company_name.label }} {{ form.company_name() }}<br>
+    {{ form.tax_id.label }} {{ form.tax_id() }}<br>
+    {{ form.verification_document.label }} {{ form.verification_document() }}<br>
+    {{ form.submit() }}
+  </form>
+{% endblock %}

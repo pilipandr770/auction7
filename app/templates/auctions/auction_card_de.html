@@ -1,0 +1,77 @@
+{# Universeller Auktionsblock mit Aufklappfunktion #}
+<div class="auction-card card shadow-sm auction-card-fixed mb-4">
+    <div class="card-img-top auction-card-img p-0" style="background:none;">
+        {% if auction.photos and auction.photos|length > 1 %}
+        <div id="auctionCardCarousel-{{ auction.id }}" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for photo in auction.photos %}
+                <div class="carousel-item {% if loop.index0 == (auction.main_photo_idx or 0) %}active{% endif %}">
+                    <img src="{{ url_for('static', filename=photo) }}" class="img-fluid rounded-top w-100" alt="Produktfoto" style="height:180px;object-fit:cover;">
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#auctionCardCarousel-{{ auction.id }}" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Vorheriges</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#auctionCardCarousel-{{ auction.id }}" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Nächstes</span>
+            </button>
+        </div>
+        {% else %}
+        <img src="{{ url_for('static', filename=img_url) }}" class="img-fluid rounded-top w-100" alt="Produktfoto" style="height:180px;object-fit:cover;">
+        {% endif %}
+    </div>
+    <div class="card-body d-flex flex-column justify-content-between">
+        <h5 class="card-title text-warning fw-bold">{{ auction.title }}</h5>
+        <p class="text-dark mb-2">Startpreis: {{ auction.starting_price }} €</p>
+        <button class="btn btn-outline-secondary w-100 auction-toggle-btn" type="button" data-auction-id="{{ auction.id }}">Mehr Details</button>
+    </div>
+</div>
+
+<div class="auction-modal modal fade" id="auctionModal-{{ auction.id }}" tabindex="-1" aria-labelledby="auctionModalLabel-{{ auction.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="auctionModalLabel-{{ auction.id }}">{{ auction.title }}</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body row">
+        <div class="col-md-6">
+          {% if auction.photos and auction.photos|length > 1 %}
+          <div id="auctionModalCarousel-{{ auction.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
+            <div class="carousel-inner">
+              {% for photo in auction.photos %}
+              <div class="carousel-item {% if loop.index0 == (auction.main_photo_idx or 0) %}active{% endif %}">
+                <img src="{{ url_for('static', filename=photo) }}" class="img-fluid rounded w-100" alt="Produktfoto" style="max-height:320px;object-fit:contain;">
+              </div>
+              {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#auctionModalCarousel-{{ auction.id }}" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Vorheriges</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#auctionModalCarousel-{{ auction.id }}" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Nächstes</span>
+            </button>
+          </div>
+          {% else %}
+          <img src="{{ url_for('static', filename=img_url) }}" class="img-fluid rounded w-100" alt="Produktfoto" style="max-height:320px;object-fit:contain;">
+          {% endif %}
+        </div>
+        <div class="col-md-6">
+          <p><strong>Beschreibung:</strong> {{ auction.description }}</p>
+          <p><strong>Startpreis:</strong> {{ auction.starting_price }} €</p>
+          <p><strong>Enddatum:</strong> {{ auction.end_date }}</p>
+          <p><strong>Gebote:</strong> {{ auction.bids|length }}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+        <button type="button" class="btn btn-primary">Gebot abgeben</button>
+      </div>
+    </div>
+  </div>
+</div>

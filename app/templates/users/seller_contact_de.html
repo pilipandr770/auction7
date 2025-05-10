@@ -1,0 +1,21 @@
+{% extends "base_de.html" %}
+
+{% block title %}
+Verkäufer Kontakt
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title text-secondary">Verkäuferdaten</h2>
+            <p><strong>Name:</strong> {{ seller.username }}</p>
+            <p><strong>Email:</strong> {{ seller.email }}</p>
+            {% if seller.phone %}
+            <p><strong>Telefon:</strong> {{ seller.phone }}</p>
+            {% endif %}
+            <p>Nehmen Sie Kontakt mit dem Verkäufer auf, um die Ware zu erhalten.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

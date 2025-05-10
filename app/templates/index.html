@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Головна сторінка - Аукціонний Застосунок{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="text-secondary fw-bold">Ласкаво просимо до нашого аукціонного застосунку!</h1>
+    <p class="text-muted fs-5">
+        Наш сервіс дозволяє продавати та купувати товари за унікальною системою аукціонів. Зареєструйтесь, щоб
+        стати частиною нашої спільноти і почати свою першу угоду!
+    </p>
+</div>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🎉 Чому саме наш аукціон?</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Унікальна модель аукціону з пониженням ціни.</li>
+        <li class="list-group-item bg-light text-muted">Шанс купити товар за справедливою ціною або зі знижкою до 80%.</li>
+        <li class="list-group-item bg-light text-muted">Прозорість — ціна формується реальною активністю покупців.</li>
+        <li class="list-group-item bg-light text-muted">Перевірені продавці, які відповідають вимогам ЄС.</li>
+        <li class="list-group-item bg-light text-muted">Ескроу-система — продавець отримає гроші тільки після вашого підтвердження.</li>
+    </ul>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🚀 Переваги для кожного учасника</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted"><b>Покупці:</b> Легкий вхід в аукціони, можливість виграти та заощадити.</li>
+        <li class="list-group-item bg-light text-muted"><b>Продавці:</b> Доступ до аудиторії, заробіток з вхідних платежів та безпечні виплати.</li>
+    </ul>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🪙 Функціональний токен AUKTO — ваш бонус</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Знижки на перегляд поточної ціни в аукціонах.</li>
+        <li class="list-group-item bg-light text-muted">Підвищення шансів виграти завдяки актуальній інформації.</li>
+        <li class="list-group-item bg-light text-muted">Оплата сервісних зборів токенами.</li>
+    </ul>
+    <p class="text-muted mt-2">Рекомендуємо придбати AUKTO та підключити гаманець для максимальної вигоди!</p>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🗣️ Голосовий асистент завжди поруч</h2>
+    <p class="text-muted text-center">
+        Не знаєте з чого почати? Скористайтесь вбудованим <b>AI Асистентом</b> у правому нижньому куті:
+    </p>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Задавайте питання та отримуйте відповіді.</li>
+        <li class="list-group-item bg-light text-muted">Дізнавайтесь про правила та можливості.</li>
+        <li class="list-group-item bg-light text-muted">Легко та швидко розберіться з нюансами торгів.</li>
+    </ul>
+</section>
+
+<section class="my-5 text-center">
+    <h2 class="text-secondary fw-bold">📢 Долучайтеся просто зараз!</h2>
+    <p class="text-muted">Натисніть кнопку нижче, щоб зареєструватися і почати вигідно купувати вже сьогодні.</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('auth.choose_role') if lang == 'ua' else (url_for('auth.choose_role_en') if lang == 'en' else url_for('auth.choose_role_de')) }}" class="btn btn-outline-light">{%- if lang == 'en' -%}Register{%- elif lang == 'de' -%}Registrieren{%- else -%}Зареєструватись{%- endif -%}</a>
+        <a href="{{ url_for('auth.login') if lang == 'ua' else (url_for('auth.login_en') if lang == 'en' else url_for('auth.login_de')) }}" class="btn btn-outline-primary">{%- if lang == 'en' -%}Login{%- elif lang == 'de' -%}Anmelden{%- else -%}Увійти{%- endif -%}</a>
+    </div>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">Активні аукціони:</h2>
+    {% if auctions %}
+    <div class="row mt-4">
+        {% for auction in auctions %}
+        <div class="col-md-4 d-flex align-items-stretch">
+            {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else 'images/default.jpg' %}
+            {% include 'auctions/auction_card.html' with context %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted fs-5">На даний момент немає активних аукціонів.</p>
+    {% endif %}
+</section>
+{% endblock %}

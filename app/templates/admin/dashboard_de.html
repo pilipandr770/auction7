@@ -1,0 +1,51 @@
+{% extends "base_de.html" %}
+
+{% block title %}
+Admin-Panel
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center text-secondary">Admin-Panel</h1>
+
+    <!-- Plattform-Guthaben -->
+    <section class="my-4">
+        <h2 class="text-secondary">Plattform-Guthaben</h2>
+        <div class="alert alert-info">
+        <a href="{{ url_for('admin.verify_sellers_de') }}" class="btn btn-outline-info">Verkäufer prüfen</a>
+    
+            <strong>Gesamtes Plattform-Guthaben:</strong> {{ admin_balance }} EUR
+        </div>
+    </section>
+
+    <!-- Benutzerliste -->
+    <section class="my-4">
+        <h2 class="text-secondary">Benutzerliste</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Guthaben</th>
+                    <th>Benutzertyp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.balance }}</td>
+                    <td>{{ user.user_type }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Auktionsliste -->
+    <section class="my-4">
+        <h2 class="text-secondary">Auktionsliste</h2>
+        <!-- ...existing code... -->

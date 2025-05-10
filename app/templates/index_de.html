@@ -1,0 +1,77 @@
+{% extends 'base_de.html' %}
+
+{% block title %}Startseite - Auktionsplattform{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="text-secondary fw-bold">Willkommen auf unserer Auktionsplattform!</h1>
+    <p class="text-muted fs-5">
+        Unser Service ermöglicht es Ihnen, Waren über ein einzigartiges Auktionssystem zu verkaufen und zu kaufen. Registrieren Sie sich, um Teil unserer Community zu werden und starten Sie Ihr erstes Geschäft!
+    </p>
+</div>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🎉 Warum unsere Auktion?</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Einzigartiges Auktionsmodell mit Preisreduzierung.</li>
+        <li class="list-group-item bg-light text-muted">Chance, Waren zum fairen Preis oder mit bis zu 80% Rabatt zu kaufen.</li>
+        <li class="list-group-item bg-light text-muted">Transparenz — der Preis wird durch die tatsächliche Aktivität der Käufer gebildet.</li>
+        <li class="list-group-item bg-light text-muted">Geprüfte Verkäufer, die den EU-Anforderungen entsprechen.</li>
+        <li class="list-group-item bg-light text-muted">Treuhandsystem — der Verkäufer erhält das Geld erst nach Ihrer Bestätigung.</li>
+    </ul>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🚀 Vorteile für jeden Teilnehmer</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted"><b>Käufer:</b> Einfacher Einstieg in Auktionen, Möglichkeit zu gewinnen und zu sparen.</li>
+        <li class="list-group-item bg-light text-muted"><b>Verkäufer:</b> Zugang zur Zielgruppe, Einnahmen aus Teilnahmegebühren und sichere Auszahlungen.</li>
+    </ul>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🪙 Funktionaler Token AUKTO — Ihr Bonus</h2>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Rabatte auf die Anzeige des aktuellen Preises in Auktionen.</li>
+        <li class="list-group-item bg-light text-muted">Erhöhte Gewinnchancen dank aktueller Informationen.</li>
+        <li class="list-group-item bg-light text-muted">Servicegebühren können mit Token bezahlt werden.</li>
+    </ul>
+    <p class="text-muted mt-2">Wir empfehlen, AUKTO zu kaufen und Ihre Wallet zu verbinden, um maximalen Nutzen zu erzielen!</p>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">🗣️ Sprachassistent immer dabei</h2>
+    <p class="text-muted text-center">
+        Sie wissen nicht, wo Sie anfangen sollen? Nutzen Sie den integrierten <b>KI-Assistenten</b> in der rechten unteren Ecke:
+    </p>
+    <ul class="list-group list-group-flush mt-4">
+        <li class="list-group-item bg-light text-muted">Stellen Sie Fragen und erhalten Sie Antworten.</li>
+        <li class="list-group-item bg-light text-muted">Erfahren Sie mehr über Regeln und Möglichkeiten.</li>
+    </ul>
+</section>
+
+<section class="my-5 text-center">
+    <h2 class="text-secondary fw-bold">📢 Jetzt mitmachen!</h2>
+    <p class="text-muted">Klicken Sie auf die Schaltfläche unten, um sich zu registrieren und noch heute günstig einzukaufen.</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="/auth/de/choose-role" class="btn btn-outline-light">Registrieren</a>
+        <a href="/auth/de/login" class="btn btn-outline-primary">Anmelden</a>
+    </div>
+</section>
+
+<section class="my-5">
+    <h2 class="text-center text-secondary fw-bold">Aktive Auktionen:</h2>
+    {% if auctions %}
+    <div class="row mt-4">
+        {% for auction in auctions %}
+        <div class="col-md-4 d-flex align-items-stretch">
+            {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else 'images/default.jpg' %}
+            {% include 'auctions/auction_card.html' with context %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted fs-5">Derzeit gibt es keine aktiven Auktionen.</p>
+    {% endif %}
+</section>
+{% endblock %}

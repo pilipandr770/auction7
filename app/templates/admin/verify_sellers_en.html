@@ -1,0 +1,39 @@
+{% extends 'base_en.html' %}
+{% block content %}
+  <h2>Pending Verification</h2>
+
+  {% if sellers %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Document</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for seller in sellers %}
+          <tr>
+            <td>{{ seller.username }}</td>
+            <td>{{ seller.email }}</td>
+            <td>
+              {% if seller.verification_document %}
+                <a href="{{ url_for('static', filename=seller.verification_document.split('static/')[-1]) }}" target="_blank">View</a>
+              {% else %}
+                No document
+              {% endif %}
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('admin.verify_seller_action', user_id=seller.id) }}">
+                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No sellers to verify</p>
+  {% endif %}
+{% endblock %}

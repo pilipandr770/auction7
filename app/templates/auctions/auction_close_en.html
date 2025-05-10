@@ -1,0 +1,29 @@
+{% extends "base_en.html" %}
+
+{% block title %}
+Close Auction
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <h1 class="text-secondary fw-bold">Auction Closed</h1>
+    <p class="text-muted fs-5 mt-3">Thank you for participating! Here are the details of the closed auction:</p>
+
+    <div class="card mt-4 border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-warning fw-bold">Auction Details</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item bg-light text-muted">Title: {{ auction.title }}</li>
+                <li class="list-group-item bg-light text-muted">Winner: {{ auction.winner_name }}</li>
+                <li class="list-group-item bg-light text-muted">Final price: {{ auction.final_price }} UAH</li>
+                <li class="list-group-item bg-light text-muted">Close date: {{ auction.close_date }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="/en" class="btn btn-secondary">Back to Home</a>
+        <a href="/en/user/dashboard" class="btn btn-warning">To User Dashboard</a>
+    </div>
+</div>
+{% endblock %}

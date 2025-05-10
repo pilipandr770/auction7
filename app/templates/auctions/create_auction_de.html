@@ -1,0 +1,50 @@
+{% extends "base_de.html" %}
+
+{% block title %}
+Auktion erstellen
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Auktion erstellen</h1>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form id="create-auction-form" enctype="multipart/form-data" method="POST" action="/de/auction/create">
+                <div class="mb-3">
+                    <label for="title" class="form-label text-secondary">Titel:</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Titel eingeben" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label text-secondary">Beschreibung:</label>
+                    <textarea id="description" name="description" class="form-control" rows="4" placeholder="Beschreibung hinzufügen" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="starting_price" class="form-label text-secondary">Startpreis:</label>
+                    <input type="number" id="starting_price" name="starting_price" class="form-control" placeholder="Startpreis eingeben" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="photos" class="form-label text-secondary">Produktfotos:</label>
+                    <input type="file" id="photos" name="photos" class="form-control" multiple accept="image/*" onchange="updatePhotoPreview()">
+                    <small class="form-text text-muted">Sie können bis zu 10 Fotos hochladen. Wählen Sie unten das Hauptfoto aus.</small>
+                    <div id="photo-preview" class="row mt-2"></div>
+                    <input type="hidden" id="main_photo_idx" name="main_photo_idx" value="0">
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-warning">Auktion erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// ...existing code...
+</script>
+{% endblock %}

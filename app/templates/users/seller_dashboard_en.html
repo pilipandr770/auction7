@@ -1,0 +1,55 @@
+{% extends "base_en.html" %}
+
+{% block title %}
+Seller Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary">Seller Dashboard</h1>
+    </div>
+
+    <!-- Seller Information -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-warning">Seller Information</h3>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Balance (completed auctions only):</strong> {{ balance_from_completed | round(2) }} UAH</p>
+        </div>
+    </div>
+
+    <!-- Crypto payout info -->
+    <div class="alert alert-info mb-4">
+        <b>Crypto features:</b> Payouts for auctions are made after buyer confirmation. You can check transaction status on PolygonScan by TX hash.
+    </div>
+
+    <!-- Auction creation form -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-secondary">Create new auction</h3>
+            <form action="/auction/create" method="POST" enctype="multipart/form-data" class="row g-3">
+                <div class="col-12">
+                    <label for="title" class="form-label">Title:</label>
+                    <input type="text" id="title" name="title" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Description:</label>
+                    <textarea id="description" name="description" class="form-control" required></textarea>
+                </div>
+                <div class="col-12">
+                    <label for="starting_price" class="form-label">Starting price:</label>
+                    <input type="number" id="starting_price" name="starting_price" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <label for="photos" class="form-label">Photos:</label>
+                    <input type="file" id="photos" name="photos" class="form-control" multiple accept="image/*">
+                </div>
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-warning w-50">Create auction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

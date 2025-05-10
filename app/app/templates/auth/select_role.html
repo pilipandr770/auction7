@@ -1,0 +1,10 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>Виберіть тип користувача</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    {{ form.user_type.label }} {{ form.user_type() }}<br><br>
+    {{ form.submit() }}
+</form>
+{% endblock %}

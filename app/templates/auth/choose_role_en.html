@@ -1,0 +1,49 @@
+{% extends 'base_en.html' %}
+{% block title %}Role Selection - Auction Platform{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="text-secondary fw-bold">Choose account type</h2>
+        <p class="text-muted fs-5">To use the platform, select your role. You can register as a buyer or a seller.</p>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-primary">Buyer</h3>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item bg-light text-muted">Participate in auctions and win products at a great price.</li>
+                        <li class="list-group-item bg-light text-muted">Instant registration and simple interface.</li>
+                        <li class="list-group-item bg-light text-muted">Secure payment via escrow.</li>
+                        <li class="list-group-item bg-light text-muted">AI assistant support for quick answers.</li>
+                    </ul>
+                    <a href="/auth/en/register/buyer" class="btn btn-outline-primary w-75">Register as Buyer</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-warning">Seller</h3>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item bg-light text-muted">Create your own auctions and sell products across Europe.</li>
+                        <li class="list-group-item bg-light text-muted">Access to audience and transparent payout system.</li>
+                        <li class="list-group-item bg-light text-muted">Verification for increased buyer trust.</li>
+                        <li class="list-group-item bg-light text-muted">Deal protection via escrow and AI assistant support.</li>
+                    </ul>
+                    <a href="/auth/en/register/seller" class="btn btn-outline-warning w-75">Register as Seller</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <div class="alert alert-info text-center">
+                <b>Buyer</b> — gets access to auctions, can win products at a reduced price, pays only after confirming receipt.<br>
+                <b>Seller</b> — creates auctions, passes verification, receives payouts after buyer confirmation.<br>
+                All deals are protected by the escrow system and supported by the AI assistant.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

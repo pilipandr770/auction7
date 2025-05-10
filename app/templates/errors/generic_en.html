@@ -1,0 +1,9 @@
+{% extends "base_en.html" %}
+{% block title %}An error occurred{% endblock %}
+{% block content %}
+<div class="container my-5 text-center">
+    <h1 class="display-4 text-danger">An error occurred</h1>
+    <p class="lead">{{ error }}</p>
+    <a href="/en" class="btn btn-outline-warning mt-3">Back to Home</a>
+</div>
+{% endblock %}

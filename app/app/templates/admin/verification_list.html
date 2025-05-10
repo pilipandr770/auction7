@@ -1,0 +1,17 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>Заявки на верифікацію</h2>
+<table class="table">
+<thead><tr><th>ID</th><th>Компанія</th><th>Статус</th><th>Дія</th></tr></thead>
+<tbody>
+{% for v in verifications %}
+<tr><td>{{ v.id }}</td><td>{{ v.company_name }}</td><td>{{ v.status }}</td><td>
+{% if v.status == "pending" %}
+<a href="{{ url_for('verification_admin.approve_verification', verification_id=v.id) }}">✅ Затвердити</a> |
+<a href="{{ url_for('verification_admin.reject_verification', verification_id=v.id) }}">❌ Відхилити</a>
+{% else %} - {% endif %}
+</td></tr>
+{% endfor %}
+</tbody></table>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base_de.html' %}
+{% block title %}Rollenwahl - Auktionsplattform{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="text-secondary fw-bold">Wählen Sie den Kontotyp</h2>
+        <p class="text-muted fs-5">Um die Plattform zu nutzen, wählen Sie Ihre Rolle. Sie können sich als Käufer oder Verkäufer registrieren.</p>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-primary">Käufer</h3>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item bg-light text-muted">Nehmen Sie an Auktionen teil und gewinnen Sie Produkte zu günstigen Preisen.</li>
+                        <li class="list-group-item bg-light text-muted">Schnelle Registrierung und einfache Bedienung.</li>
+                        <li class="list-group-item bg-light text-muted">Sichere Zahlung über Treuhandkonto.</li>
+                        <li class="list-group-item bg-light text-muted">AI-Assistent für schnelle Antworten.</li>
+                    </ul>
+                    <a href="/auth/de/register/buyer" class="btn btn-outline-primary w-75">Als Käufer registrieren</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-warning">Verkäufer</h3>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item bg-light text-muted">Erstellen Sie eigene Auktionen und verkaufen Sie europaweit.</li>
+                        <li class="list-group-item bg-light text-muted">Zugang zur Zielgruppe und transparentes Auszahlungssystem.</li>
+                        <li class="list-group-item bg-light text-muted">Verifizierung für mehr Vertrauen der Käufer.</li>
+                        <li class="list-group-item bg-light text-muted">Schutz der Transaktionen durch Treuhand und AI-Assistent.</li>
+                    </ul>
+                    <a href="/auth/de/register/seller" class="btn btn-outline-warning w-75">Als Verkäufer registrieren</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <div class="alert alert-info text-center">
+                <b>Käufer</b> — erhält Zugang zu Auktionen, kann Produkte zu reduzierten Preisen gewinnen, zahlt erst nach Bestätigung des Erhalts.<br>
+                <b>Verkäufer</b> — erstellt Auktionen, wird verifiziert, erhält Auszahlungen nach Bestätigung durch den Käufer.<br>
+                Alle Transaktionen sind durch das Treuhandsystem geschützt und werden vom AI-Assistenten unterstützt.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

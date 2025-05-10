@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}
+Створити Аукціон
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Створення Аукціону</h1>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form id="create-auction-form" enctype="multipart/form-data" method="POST" action="/auction/create">
+                <div class="mb-3">
+                    <label for="title" class="form-label text-secondary">Назва:</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Введіть назву"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label text-secondary">Опис:</label>
+                    <textarea id="description" name="description" class="form-control" rows="4"
+                        placeholder="Додайте опис" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="starting_price" class="form-label text-secondary">Стартова ціна:</label>
+                    <input type="number" id="starting_price" name="starting_price" class="form-control"
+                        placeholder="Введіть стартову ціну" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="photos" class="form-label text-secondary">Фотографії товару:</label>
+                    <input type="file" id="photos" name="photos" class="form-control" multiple accept="image/*" onchange="updatePhotoPreview()">
+                    <small class="form-text text-muted">Можна завантажити до 10 фотографій. Оберіть головне фото нижче.</small>
+                    <div id="photo-preview" class="row mt-2"></div>
+                    <input type="hidden" id="main_photo_idx" name="main_photo_idx" value="0">
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-warning">Створити аукціон</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePhotoPreview() {
+    const input = document.getElementById('photos');
+    const preview = document.getElementById('photo-preview');
+    preview.innerHTML = '';
+    const files = input.files;
+    for (let i = 0; i < files.length && i < 10; i++) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const col = document.createElement('div');
+            col.className = 'col-3 position-relative';
+            col.innerHTML = `<img src='${e.target.result}' class='img-fluid rounded mb-1' style='height:80px;object-fit:cover;cursor:pointer;border:2px solid #ffc107;' onclick='setMainPhoto(${i})'>` +
+                `<div class='form-check text-center'><input class='form-check-input' type='radio' name='main_photo_radio' id='main_photo_radio_${i}' value='${i}' ${i===0?'checked':''} onchange='setMainPhoto(${i})'><label class='form-check-label small' for='main_photo_radio_${i}'>Головне</label></div>`;
+            preview.appendChild(col);
+        };
+        reader.readAsDataURL(files[i]);
+    }
+}
+function setMainPhoto(idx) {
+    document.getElementById('main_photo_idx').value = idx;
+    // Встановити radio
+    const radios = document.getElementsByName('main_photo_radio');
+    radios.forEach((r, i) => { r.checked = (i === idx); });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base_en.html' %}
+{% block content %}
+  <h2>Seller Registration</h2>
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <ul>
+        {% for field, errors in form.errors.items() %}
+          {% for error in errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  <form method="POST" enctype="multipart/form-data" action="/auth/en/register/seller">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.username.label }} {{ form.username(class_="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.email.label }} {{ form.email(class_="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.password.label }} {{ form.password(class_="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.confirm_password.label }} {{ form.confirm_password(class_="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.company_name.label }} {{ form.company_name(class_="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.tax_id.label }} {{ form.tax_id(class_="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.verification_document.label }} {{ form.verification_document(class_="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-warning w-100">Register as Seller</button>
+  </form>
+{% endblock %}
