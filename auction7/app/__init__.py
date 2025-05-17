@@ -44,9 +44,9 @@ def create_app():
         return User.query.get(int(user_id))
 
     # Реєстрація моделей (за потреби)
-    from app.models.auction import Auction
-    from app.models.auction_participant import AuctionParticipant
-    from app.models.payment import Payment
+    from auction7.app.models.auction import Auction
+    from auction7.app.models.auction_participant import AuctionParticipant
+    from auction7.app.models.payment import Payment
 
     # Реєстрація маршрутів
     from app.routes.auth_routes import auth_bp
