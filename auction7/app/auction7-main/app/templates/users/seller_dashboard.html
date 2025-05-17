@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}
+Кабінет продавця
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary">Кабінет продавця</h1>
+    </div>
+
+    <!-- Інформація про продавця -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-warning">Інформація про продавця</h3>
+            <p><strong>Ім'я користувача:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Баланс (тільки завершені аукціони):</strong> {{ balance_from_completed | round(2) }} грн</p>
+        </div>
+    </div>
+
+    <!-- Підказка про криптовиплати -->
+    <div class="alert alert-info mb-4">
+        <b>Криптофункції:</b> Виплати за аукціони надходять після підтвердження покупцем. Статус транзакцій можна перевірити у PolygonScan за TX hash.
+    </div>
+
+    <!-- Форма створення аукціону -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-secondary">Створити новий аукціон</h3>
+            <form action="/auction/create" method="POST" enctype="multipart/form-data" class="row g-3">
+                <div class="col-12">
+                    <label for="title" class="form-label">Назва:</label>
+                    <input type="text" id="title" name="title" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Опис:</label>
+                    <textarea id="description" name="description" class="form-control" required></textarea>
+                </div>
+                <div class="col-12">
+                    <label for="starting_price" class="form-label">Початкова ціна:</label>
+                    <input type="number" id="starting_price" name="starting_price" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <label for="photos" class="form-label">Фото:</label>
+                    <input type="file" id="photos" name="photos" class="form-control" multiple accept="image/*">
+                </div>
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-warning w-50">Створити аукціон</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Мої аукціони -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h3 class="card-title text-secondary">Мої аукціони</h3>
+            {% if auctions %}
+            <ul class="list-group">
+                {% for auction in auctions %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="text-secondary">{{ auction.title }}</h5>
+                        <p class="text-muted">{{ auction.description }}</p>
+                        <p class="text-muted"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+                        <p class="text-muted"><strong>Статус:</strong>
+                            <span class="{{ 'text-success' if auction.is_active else 'text-danger' }}">
+                                {{ 'Активний' if auction.is_active else 'Закритий' }}
+                            </span>
+                        </p>
+                        {% if not auction.is_active %}
+                        <p><strong>Зароблено з цього аукціону:</strong> {{ auction.total_earnings | round(2) }} грн</p>
+                        <p><strong>Кількість учасників:</strong> {{ auction.total_participants }}</p>
+                        {% if auction.winner %}
+                        <p><strong>Переможець:</strong></p>
+                        <ul>
+                            <li><strong>Ім'я:</strong> {{ auction.winner.username }}</li>
+                            <li><strong>Email:</strong> {{ auction.winner.email }}</li>
+                        </ul>
+                        <div class="alert alert-secondary p-2 mt-2">
+                            <b>Статус виплати:</b> Очікує підтвердження покупцем (escrow)
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted text-center">У вас ще немає створених аукціонів.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Довідка для продавця -->
+    <div class="card shadow-sm border-0 mt-5">
+        <div class="card-body">
+            <h3 class="card-title text-primary">Як правильно обрати стартову і вхідну ціну</h3>
+            <p>Справедлива ринкова ціна — це середня вартість, за якою товар продається на популярних майданчиках (наприклад, Чек24, OLX). Завищення ціни сповільнює продаж.</p>
+            <p>Чим доступніше початкова ціна — тим більше шансів швидко знайти покупця.</p>
+
+            <h5>Вхідна ціна — важливий елемент</h5>
+            <p>Це плата за право участі. Всі ці кошти отримуєте саме ви як продавець.</p>
+            <p>Однак важливо підібрати вхідну ціну так, щоб залучити якнайбільше учасників:</p>
+            <ul>
+                <li><b>1000 євро</b> — дуже мало учасників.</li>
+                <li><b>100 євро</b> — мало учасників.</li>
+                <li><b>10 євро</b> — достатньо учасників.</li>
+                <li><b>1 євро</b> — максимальна кількість бажаючих.</li>
+            </ul>
+
+            <h5>Приклад:</h5>
+            <p>Продаючи Mercedes за 100 000 євро і встановивши вхідну ціну 1 євро, ви отримаєте велику кількість учасників і підвищите шанси продати товар швидко і за ринковою ціною. Обробкою учасників і проведенням аукціону займаємося ми.</p>
+
+            <h5>Дбаємо про всіх учасників</h5>
+            <p>Ми, як засновники, гарантуємо чесність для всіх:</p>
+            <ul>
+                <li>Покупець отримує товар.</li>
+                <li>Продавець отримує всі вхідні платежі + фінальну ціну.</li>
+                <li>Інші учасники втрачають вхід, тому важливо робити вхід доступним, щоб це було чесно.</li>
+            </ul>
+
+            <p><strong>У будь-якому випадку продавець не втрачає нічого</strong> — він лише або швидше, або трохи пізніше отримає встановлену суму за товар.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

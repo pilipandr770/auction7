@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}
+Список Аукціонів
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Список Аукціонів</h1>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if auctions %}
+            <ul class="list-group">
+                {% for auction in auctions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 text-warning">{{ auction.title }}</h5>
+                        <p class="mb-1 text-muted">{{ auction.description }}</p>
+                        <small class="text-secondary">Початкова ціна: {{ auction.starting_price }} грн</small>
+                    </div>
+                    <a href="/auction/{{ auction.id }}" class="btn btn-outline-warning btn-sm">Деталі</a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="alert alert-info text-center">
+                На даний момент немає активних аукціонів.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

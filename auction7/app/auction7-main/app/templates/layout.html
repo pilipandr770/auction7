@@ -1,0 +1,7 @@
+{% if current_user.is_authenticated %}
+    {% if current_user.wallet_address %}
+        <span>Ваш гаманець: {{ current_user.wallet_address }}</span>
+    {% else %}
+        <a href="{{ url_for('user.connect_wallet') }}">Підключити гаманець</a>
+    {% endif %}
+{% endif %}

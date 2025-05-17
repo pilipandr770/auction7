@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}
+Авторизація
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="text-secondary fw-bold">Авторизація</h2>
+    </div>
+
+    <!-- Відображення повідомлень з `flash`, фільтруємо категорії -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="alert-container">
+        {% for category, message in messages %}
+        {% if category in ["success", "error"] %} <!-- Фільтруємо тільки потрібні категорії -->
+        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 400px;">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="mb-3">
+                    <label for="email" class="form-label text-secondary">Електронна пошта:</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Введіть вашу пошту"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label text-secondary">Пароль:</label>
+                    <input type="password" id="password" name="password" class="form-control"
+                        placeholder="Введіть пароль" required>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-warning w-100">Увійти</button>
+                </div>
+            </form>
+
+            <p class="text-center mt-3">
+                <a href="{{ url_for('auth.register') }}" class="text-warning text-decoration-none">Ще не маєте
+                    облікового запису? Зареєструватися</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

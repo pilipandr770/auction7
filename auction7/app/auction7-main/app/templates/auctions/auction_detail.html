@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}
+Деталі аукціону
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Деталі аукціону</h1>
+    </div>
+
+    <nav class="mb-4">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link text-secondary" href="/">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary" href="/user/buyer/{{ current_user.email }}">Кабінет</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="/auth/logout">Вийти</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h2 class="card-title text-warning fw-bold">{{ auction.title }}</h2>
+            <p class="card-text"><strong>Опис:</strong> {{ auction.description }}</p>
+            <p class="card-text"><strong>Початкова ціна:</strong> {{ auction.starting_price }} грн</p>
+            <p class="card-text"><strong>Продавець:</strong> {{ auction.seller.username }} ({{ auction.seller.email }})
+            </p>
+
+            <!-- Відображення фотографій -->
+            {% if auction.photos %}
+            <div class="mt-4">
+                <h5 class="text-secondary">Фотографії товару:</h5>
+                <div class="row">
+                    {% for photo in auction.photos %}
+                    <div class="col-md-3 mb-3">
+                        <img src="{{ url_for('static', filename=photo) }}" class="img-fluid rounded" alt="Фото товару">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        {% if auction.is_active %}
+        <form id="participate-form" method="POST" class="mb-4">
+            <div class="mb-3">
+                <p><strong>Ціна за участь:</strong> {{ auction.starting_price * 0.01 }} грн</p>
+            </div>
+            <button type="submit" class="btn btn-warning w-100">Взяти участь</button>
+        </form>
+        <button id="view-details-btn" class="btn btn-secondary w-100">Переглянути поточну ціну (1.00 €)</button>
+        <form id="close-auction-form" method="POST"
+            action="{{ url_for('auction.close_auction', auction_id=auction.id) }}">
+            <button type="submit" class="btn btn-danger w-100 mt-3">Закрити аукціон</button>
+        </form>
+        {% else %}
+        <div class="alert alert-info mt-3">
+            <p>Цей аукціон завершено.</p>
+            <p><strong>Покупець:</strong> {{ auction.winner.username }} ({{ auction.winner.email }})</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="auction-details" class="mt-4" style="display: none;">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title text-secondary">Деталі аукціону</h5>
+                <p><strong>Кількість учасників:</strong> <span id="participants-count"></span></p>
+                <p><strong>Поточна ціна:</strong> <span id="current-price"></span> грн</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Обробка участі в аукціоні
+    document.getElementById('participate-form')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        try {
+            const response = await fetch(location.pathname, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('participants-count').textContent = data.participants;
+                document.getElementById('current-price').textContent = data.final_price;
+
+                const auctionDetails = document.getElementById('auction-details');
+                auctionDetails.style.display = 'block';
+
+                // Ховаємо інформацію через 5 секунд
+                setTimeout(() => {
+                    auctionDetails.style.display = 'none';
+                }, 5000);
+            } else {
+                const errorData = await response.json();
+                alert(`Помилка: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Помилка:', error);
+            alert('Не вдалося взяти участь в аукціоні. Спробуйте пізніше.');
+        }
+    });
+
+    // Обробка перегляду деталей аукціону
+    document.getElementById('view-details-btn')?.addEventListener('click', async function () {
+        try {
+            const response = await fetch(`/auction/view/{{ auction.id }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('participants-count').textContent = data.participants;
+                document.getElementById('current-price').textContent = data.final_price;
+
+                const auctionDetails = document.getElementById('auction-details');
+                auctionDetails.style.display = 'block';
+
+                // Ховаємо інформацію через 5 секунд
+                setTimeout(() => {
+                    auctionDetails.style.display = 'none';
+                }, 5000);
+            } else {
+                const errorData = await response.json();
+                alert(`Помилка: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Помилка:', error);
+            alert('Не вдалося оновити перегляд. Спробуйте пізніше.');
+        }
+    });
+</script>
+{% endblock %}

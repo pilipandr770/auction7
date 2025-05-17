@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+Створити Аукціон
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="text-secondary fw-bold">Створення Аукціону</h1>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form id="create-auction-form" enctype="multipart/form-data" method="POST" action="/auction/create">
+                <div class="mb-3">
+                    <label for="title" class="form-label text-secondary">Назва:</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Введіть назву"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label text-secondary">Опис:</label>
+                    <textarea id="description" name="description" class="form-control" rows="4"
+                        placeholder="Додайте опис" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="starting_price" class="form-label text-secondary">Стартова ціна:</label>
+                    <input type="number" id="starting_price" name="starting_price" class="form-control"
+                        placeholder="Введіть стартову ціну" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="photos" class="form-label text-secondary">Фотографії товару:</label>
+                    <input type="file" id="photos" name="photos" class="form-control" multiple accept="image/*">
+                    <small class="form-text text-muted">Можна завантажити до 5 фотографій.</small>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-warning">Створити аукціон</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
