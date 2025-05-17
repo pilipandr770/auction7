@@ -49,12 +49,12 @@ def create_app():
     from auction7.app.models.payment import Payment
 
     # Реєстрація маршрутів
-    from app.routes.auth_routes import auth_bp
-    from app.routes.user_routes import user_bp
-    from app.routes.auction_routes import auction_bp
-    from app.routes.main_routes import main_bp
-    from app.routes.admin_routes import admin_bp
-    from assistans.routes import assistant_bp
+    from auction7.app.models.user import User
+    from auction7.app.routes.auth_routes import auth_bp
+    from auction7.app.routes.user_routes import user_bp
+    from auction7.app.routes.auction_routes import auction_bp
+    from auction7.app.routes.main_routes import main_bp
+    from auction7.app.routes.admin_routes import admin_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
