@@ -7,6 +7,22 @@ from auction7.app.models.auction_participant import AuctionParticipant
 # FIXME: blockchain_payments module path needs to be fixed
 # from blockchain_payments.payment_matic import process_payment, send_to_escrow, send_to_admin, release_from_escrow
 
+def process_payment(amount, from_address, to_address):
+    """Temporary stub function until blockchain_payments module is properly imported"""
+    return {"success": False, "error": "Blockchain payment module not configured"}
+
+def send_to_escrow(from_private_key, from_address, amount):
+    """Temporary stub function until blockchain_payments module is properly imported"""
+    return {"success": False, "error": "Blockchain payment module not configured"}
+
+def send_to_admin(from_private_key, from_address, amount):
+    """Temporary stub function until blockchain_payments module is properly imported"""
+    return {"success": False, "error": "Blockchain payment module not configured"}
+
+def release_from_escrow(to_address, amount):
+    """Temporary stub function until blockchain_payments module is properly imported"""
+    return {"success": False, "error": "Blockchain payment module not configured"}
+
 user_bp = Blueprint('user', __name__)
 
 @user_bp.route('/add_balance', methods=['POST'])

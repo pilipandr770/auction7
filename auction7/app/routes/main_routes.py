@@ -2,6 +2,10 @@ from flask import Blueprint, render_template
 from flask_login import current_user
 # FIXME: blockchain_payments module path needs to be fixed
 # from blockchain_payments.payment_token_discount import get_user_discount
+
+def get_user_discount(wallet_address):
+    """Temporary stub function until blockchain_payments module is properly imported"""
+    return 0  # No discount for now
 from auction7.app.models.auction import Auction
 
 main_bp = Blueprint('main', __name__)
