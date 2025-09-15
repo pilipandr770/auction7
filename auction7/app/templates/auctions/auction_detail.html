@@ -32,14 +32,23 @@
             <p class="card-text"><strong>Продавець:</strong> {{ auction.seller.username }} ({{ auction.seller.email }})
             </p>
 
-            <!-- Відображення фотографій -->
+            <!-- Відображення фотографій з покращеною галереєю -->
             {% if auction.photos %}
             <div class="mt-4">
-                <h5 class="text-secondary">Фотографії товару:</h5>
-                <div class="row">
+                <h5 class="text-secondary mb-3">
+                    <i class="bi bi-images me-2"></i>
+                    Фотографії товару
+                </h5>
+                <div class="image-gallery">
                     {% for photo in auction.photos %}
-                    <div class="col-md-3 mb-3">
-                        <img src="{{ url_for('static', filename=photo) }}" class="img-fluid rounded" alt="Фото товару">
+                    <div class="gallery-item" onclick="openImageModal('{{ url_for('static', filename=photo) }}')">
+                        <img src="{{ url_for('static', filename=photo) }}" 
+                             class="img-fluid" 
+                             alt="Фото товару {{ loop.index }}"
+                             loading="lazy">
+                        <div class="gallery-overlay">
+                            <i class="bi bi-zoom-in text-white fs-3"></i>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -80,7 +89,29 @@
     </div>
 </div>
 
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0 p-2">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+            </div>
+            <div class="modal-body p-0 text-center">
+                <img src="" id="modalImage" class="img-fluid rounded" alt="Зображення товару">
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Функція для відкриття модального вікна з зображенням
+    function openImageModal(imageSrc) {
+        const modalImage = document.getElementById('modalImage');
+        modalImage.src = imageSrc;
+        const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+        imageModal.show();
+    }
+
     // Обробка участі в аукціоні
     document.getElementById('participate-form')?.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -149,4 +180,39 @@
         }
     });
 </script>
+
+<style>
+.gallery-item {
+    position: relative;
+    cursor: pointer;
+}
+
+.gallery-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition-medium);
+    border-radius: var(--border-radius-md);
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.modal-content {
+    background: rgba(0, 0, 0, 0.9) !important;
+}
+
+#modalImage {
+    max-height: 90vh;
+    width: auto;
+}
+</style>
 {% endblock %}

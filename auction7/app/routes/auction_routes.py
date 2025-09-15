@@ -2,10 +2,10 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
-from app import db
-from app.models.auction import Auction
-from app.models.user import User
-from app.models.auction_participant import AuctionParticipant
+from auction7.app import db
+from auction7.app.models.auction import Auction
+from auction7.app.models.user import User
+from auction7.app.models.auction_participant import AuctionParticipant
 
 auction_bp = Blueprint('auction', __name__)
 

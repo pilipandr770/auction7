@@ -30,9 +30,28 @@
                             <a href="#" class="text-white fs-4" title="Facebook"><i class="bi bi-facebook"></i></a>
                             <a href="#" class="text-white fs-4" title="Instagram"><i class="bi bi-instagram"></i></a>
                         </div>
-                        <!-- Справа: Віджет гаманця -->
-                        <div class="d-flex align-items-center ms-3">
+                        <!-- Справа: Баланс та Віджет гаманця -->
+                        <div class="d-flex align-items-center ms-3 gap-3">
                             {% if current_user.is_authenticated %}
+                                <!-- Баланс користувача -->
+                                <div class="d-flex align-items-center">
+                                    <div class="balance-widget bg-white px-3 py-2 rounded shadow-sm">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-wallet2 text-success"></i>
+                                            <div>
+                                                <div class="small text-muted">Баланс</div>
+                                                <div class="fw-bold text-dark">${{ "%.2f"|format(current_user.balance) }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a href="{{ url_for('payment.balance_topup') }}" 
+                                       class="btn btn-success btn-sm ms-2" 
+                                       title="Поповнити баланс">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </a>
+                                </div>
+                                
+                                <!-- Віджет гаманця -->
                                 {% if current_user.wallet_address %}
                                     <div class="wallet-widget d-flex align-items-center bg-white px-2 py-1 rounded shadow-sm" style="gap: 8px;">
                                         <span style="font-size: 1.2em; color: #28a745;">&#128179;</span>
@@ -42,12 +61,12 @@
                                         <span id="wallet-copy-status" class="text-success small ms-1" style="display:none;">Скопійовано!</span>
                                     </div>
                                     {% if user_discount is not none %}
-                                        <div class="ms-2 small text-success fw-bold" style="white-space:nowrap;">
+                                        <div class="small text-success fw-bold" style="white-space:nowrap;">
                                             Знижка за токен: <span style="color:#d5a021;">-{{ user_discount }}%</span>
                                         </div>
                                     {% endif %}
                                 {% else %}
-                                    <button onclick="connectWallet()" class="btn btn-outline-warning btn-sm ms-2">Підключити гаманець &#128179;</button>
+                                    <button onclick="connectWallet()" class="btn btn-outline-warning btn-sm">Підключити гаманець &#128179;</button>
                                 {% endif %}
                             {% endif %}
                         </div>

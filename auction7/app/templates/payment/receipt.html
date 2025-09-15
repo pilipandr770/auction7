@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Квитанція № {{ payment.id }}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header with actions -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Квитанція № {{ payment.id }}</h2>
+                    <div class="text-muted">{{ payment.created_at.strftime('%d %B %Y, %H:%M') }}</div>
+                </div>
+                <div>
+                    <button onclick="window.print()" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-printer me-1"></i>Друкувати
+                    </button>
+                    <a href="{{ url_for('payment.payment_history') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left me-1"></i>Назад
+                    </a>
+                </div>
+            </div>
+
+            <!-- Receipt Card -->
+            <div class="card shadow-sm border-0" id="receipt-content">
+                <!-- Company Header -->
+                <div class="card-header bg-white border-bottom-0 text-center py-4">
+                    <div class="mb-3">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                             alt="Auction7" 
+                             class="mb-2" 
+                             style="height: 60px;"
+                             onerror="this.style.display='none'">
+                        <h3 class="text-primary mb-0">Auction7</h3>
+                        <p class="text-muted small mb-0">Аукціонна платформа</p>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Payment Status -->
+                    <div class="text-center mb-4">
+                        {% if payment.status == 'completed' %}
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-check-lg fs-3"></i>
+                            </div>
+                            <h4 class="text-success mb-2">Платіж успішно завершено</h4>
+                        {% elif payment.status == 'pending' %}
+                            <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-clock fs-3"></i>
+                            </div>
+                            <h4 class="text-warning mb-2">Платіж в обробці</h4>
+                        {% elif payment.status == 'failed' %}
+                            <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-x-lg fs-3"></i>
+                            </div>
+                            <h4 class="text-danger mb-2">Платіж не пройшов</h4>
+                        {% else %}
+                            <h4 class="text-muted mb-2">{{ payment.get_status_display() }}</h4>
+                        {% endif %}
+                        <p class="text-muted">{{ payment.get_purpose_display() }}</p>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Payment Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-3">Деталі платежу</h6>
+                            <div class="mb-2">
+                                <strong>ID транзакції:</strong>
+                                <span class="font-monospace">#{{ payment.id }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Дата створення:</strong>
+                                {{ payment.created_at.strftime('%d.%m.%Y %H:%M:%S') }}
+                            </div>
+                            {% if payment.processed_at %}
+                            <div class="mb-2">
+                                <strong>Дата обробки:</strong>
+                                {{ payment.processed_at.strftime('%d.%m.%Y %H:%M:%S') }}
+                            </div>
+                            {% endif %}
+                            <div class="mb-2">
+                                <strong>Тип операції:</strong>
+                                {{ payment.get_purpose_display() }}
+                            </div>
+                            {% if payment.auction %}
+                            <div class="mb-2">
+                                <strong>Аукціон:</strong>
+                                <a href="{{ url_for('auction.auction_details', auction_id=payment.auction_id) }}" 
+                                   class="text-decoration-none">
+                                    {{ payment.auction.title }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-3">Платіжні дані</h6>
+                            {% if payment.stripe_session_id %}
+                            <div class="mb-2">
+                                <strong>Stripe Session ID:</strong>
+                                <span class="font-monospace small">{{ payment.stripe_session_id }}</span>
+                            </div>
+                            {% endif %}
+                            {% if payment.stripe_charge_id %}
+                            <div class="mb-2">
+                                <strong>Stripe Charge ID:</strong>
+                                <span class="font-monospace small">{{ payment.stripe_charge_id }}</span>
+                            </div>
+                            {% endif %}
+                            {% if payment.stripe_payment_intent_id %}
+                            <div class="mb-2">
+                                <strong>Payment Intent ID:</strong>
+                                <span class="font-monospace small">{{ payment.stripe_payment_intent_id }}</span>
+                            </div>
+                            {% endif %}
+                            {% if payment.failure_reason %}
+                            <div class="mb-2">
+                                <strong>Причина помилки:</strong>
+                                <span class="text-danger">{{ payment.failure_reason }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Customer Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-3">Інформація про клієнта</h6>
+                            <div class="mb-2">
+                                <strong>Ім'я:</strong> {{ payment.user.username }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Email:</strong> {{ payment.user.email }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>ID користувача:</strong> {{ payment.user.id }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-3">Підсумок</h6>
+                            <div class="bg-light rounded p-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Сума:</span>
+                                    <span class="fw-bold">{{ payment.get_formatted_amount() }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Комісія платформи:</span>
+                                    <span>$0.00</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold">Загальна сума:</span>
+                                    <span class="fw-bold fs-5 text-primary">{{ payment.get_formatted_amount() }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Stripe Details -->
+                    {% if stripe_details %}
+                    <hr class="my-4">
+                    <div>
+                        <h6 class="text-muted text-uppercase small fw-bold mb-3">Додatkові дані від Stripe</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-2">
+                                    <strong>Метод оплати:</strong>
+                                    {% if stripe_details.payment_method_details.card %}
+                                        **** {{ stripe_details.payment_method_details.card.last4 }}
+                                        ({{ stripe_details.payment_method_details.card.brand|title }})
+                                    {% else %}
+                                        {{ stripe_details.payment_method_details.type|title }}
+                                    {% endif %}
+                                </div>
+                                {% if stripe_details.receipt_url %}
+                                <div class="mb-2">
+                                    <a href="{{ stripe_details.receipt_url }}" 
+                                       target="_blank" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-receipt me-1"></i>
+                                        Stripe квитанція
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {% if stripe_details.billing_details.name %}
+                                <div class="mb-2">
+                                    <strong>Ім'я на картці:</strong>
+                                    {{ stripe_details.billing_details.name }}
+                                </div>
+                                {% endif %}
+                                {% if stripe_details.outcome %}
+                                <div class="mb-2">
+                                    <strong>Результат:</strong>
+                                    <span class="badge bg-success">{{ stripe_details.outcome.type|title }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Footer -->
+                    <div class="text-center mt-5 pt-4 border-top">
+                        <p class="text-muted small mb-1">
+                            Дякуємо за використання нашої платформи!
+                        </p>
+                        <p class="text-muted small mb-0">
+                            Якщо у вас є питання, зв'яжіться з нашою підтримкою: 
+                            <a href="mailto:support@auction7.com">support@auction7.com</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    #receipt-content,
+    #receipt-content * {
+        visibility: visible;
+    }
+    
+    #receipt-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    
+    .btn,
+    .d-flex.justify-content-between.align-items-center {
+        display: none !important;
+    }
+}
+
+.font-monospace {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.9em;
+}
+</style>
+{% endblock %}

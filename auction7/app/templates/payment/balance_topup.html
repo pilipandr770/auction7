@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Поповнити баланс{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-wallet2 me-2"></i>
+                        Поповнення балансу
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Поточний баланс -->
+                    <div class="alert alert-info d-flex align-items-center mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <div>
+                            <strong>Поточний баланс:</strong> 
+                            <span class="fs-5 text-primary fw-bold">${{ "%.2f"|format(current_balance) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Форма поповнення -->
+                    <form method="POST" class="needs-validation" novalidate>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="amount" class="form-label fw-semibold">
+                                        <i class="bi bi-currency-dollar me-1"></i>
+                                        Сума поповнення (USD)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">$</span>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="amount" 
+                                               name="amount" 
+                                               min="1" 
+                                               max="1000" 
+                                               step="0.01" 
+                                               placeholder="0.00"
+                                               required>
+                                        <div class="invalid-feedback">
+                                            Введіть суму від $1 до $1000
+                                        </div>
+                                    </div>
+                                    <div class="form-text">
+                                        Мінімальна сума: $1.00, Максимальна: $1000.00
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Швидкий вибір сум -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Швидкий вибір</label>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm quick-amount" data-amount="10">$10</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm quick-amount" data-amount="25">$25</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm quick-amount" data-amount="50">$50</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm quick-amount" data-amount="100">$100</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Способи оплати -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">
+                                <i class="bi bi-credit-card me-2"></i>
+                                Способи оплати
+                            </h5>
+                            <div class="payment-methods d-flex gap-3 flex-wrap">
+                                <div class="payment-method-item text-center p-2 border rounded">
+                                    <i class="bi bi-credit-card fs-2 text-primary"></i>
+                                    <div class="small">Картка</div>
+                                </div>
+                                <div class="payment-method-item text-center p-2 border rounded">
+                                    <i class="bi bi-paypal fs-2 text-primary"></i>
+                                    <div class="small">PayPal</div>
+                                </div>
+                                <div class="payment-method-item text-center p-2 border rounded">
+                                    <i class="bi bi-apple fs-2 text-primary"></i>
+                                    <div class="small">Apple Pay</div>
+                                </div>
+                                <div class="payment-method-item text-center p-2 border rounded">
+                                    <i class="bi bi-google fs-2 text-primary"></i>
+                                    <div class="small">Google Pay</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Кнопка -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-lock-fill me-2"></i>
+                                Перейти до оплати
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Безпека -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="mb-2">
+                            <i class="bi bi-shield-check text-success me-2"></i>
+                            Безпека платежів
+                        </h6>
+                        <div class="small text-muted">
+                            <div class="mb-1">
+                                <i class="bi bi-check text-success me-1"></i>
+                                256-бітне SSL шифрування
+                            </div>
+                            <div class="mb-1">
+                                <i class="bi bi-check text-success me-1"></i>
+                                PCI DSS сертифікація
+                            </div>
+                            <div>
+                                <i class="bi bi-check text-success me-1"></i>
+                                Безпечна обробка через Stripe
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Історія платежів -->
+            {% if recent_payments %}
+            <div class="card mt-4 shadow-sm border-0">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Останні поповнення
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Сума</th>
+                                    <th>Статус</th>
+                                    <th>Дії</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>
+                                        <div class="small">
+                                            {{ payment.created_at.strftime('%d.%m.%Y') }}
+                                            <div class="text-muted">{{ payment.created_at.strftime('%H:%M') }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">{{ payment.get_formatted_amount() }}</span>
+                                    </td>
+                                    <td>
+                                        {% if payment.status == 'completed' %}
+                                            <span class="badge bg-success">{{ payment.get_status_display() }}</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning">{{ payment.get_status_display() }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ payment.get_status_display() }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('payment.payment_receipt', payment_id=payment.id) }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-receipt me-1"></i>Квитанція
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('payment.payment_history') }}" class="btn btn-outline-secondary btn-sm">
+                            Вся історія платежів
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Швидкий вибір сум
+document.querySelectorAll('.quick-amount').forEach(button => {
+    button.addEventListener('click', function() {
+        const amount = this.dataset.amount;
+        document.getElementById('amount').value = amount;
+        
+        // Візуальний фідбек
+        document.querySelectorAll('.quick-amount').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+// Bootstrap validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+
+<style>
+.payment-method-item {
+    flex: 0 0 auto;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.payment-method-item:hover {
+    background-color: var(--light-cream) !important;
+    border-color: var(--primary-gold) !important;
+}
+
+.quick-amount.active {
+    background-color: var(--primary-gold) !important;
+    border-color: var(--primary-gold) !important;
+    color: white !important;
+}
+</style>
+{% endblock %}
