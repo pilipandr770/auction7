@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Історія платежів{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
+                     style="background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));">
+                    <div>
+                        <h3 class="mb-0">
+                            <i class="bi bi-journal-text me-2"></i>
+                            Історія платежів
+                        </h3>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('payment.balance_topup') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i>Поповнити баланс
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if payments.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Дата і час</th>
+                                        <th>Тип операції</th>
+                                        <th>Сума</th>
+                                        <th>Аукціон</th>
+                                        <th>Статус</th>
+                                        <th>Дії</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payments.items %}
+                                    <tr>
+                                        <td>
+                                            <span class="font-monospace small text-muted">#{{ payment.id }}</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <div class="fw-semibold">{{ payment.created_at.strftime('%d.%m.%Y') }}</div>
+                                                <div class="text-muted small">{{ payment.created_at.strftime('%H:%M:%S') }}</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if payment.purpose == 'balance_topup' %}
+                                                    <i class="bi bi-wallet-fill text-success me-2"></i>
+                                                    <span class="text-success fw-semibold">{{ payment.get_purpose_display() }}</span>
+                                                {% elif payment.purpose == 'entry_fee' %}
+                                                    <i class="bi bi-ticket-perforated text-primary me-2"></i>
+                                                    <span class="text-primary fw-semibold">{{ payment.get_purpose_display() }}</span>
+                                                {% elif payment.purpose == 'view_info' %}
+                                                    <i class="bi bi-eye text-info me-2"></i>
+                                                    <span class="text-info fw-semibold">{{ payment.get_purpose_display() }}</span>
+                                                {% else %}
+                                                    <i class="bi bi-question-circle text-secondary me-2"></i>
+                                                    <span class="text-secondary">{{ payment.get_purpose_display() }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if payment.purpose == 'balance_topup' %}
+                                                <span class="text-success fw-bold">
+                                                    <i class="bi bi-plus-circle me-1"></i>{{ payment.get_formatted_amount() }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-danger fw-bold">
+                                                    <i class="bi bi-dash-circle me-1"></i>{{ payment.get_formatted_amount() }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if payment.auction %}
+                                                <a href="{{ url_for('auction.auction_details', auction_id=payment.auction_id) }}" 
+                                                   class="text-decoration-none">
+                                                    <div class="small">
+                                                        <div class="fw-semibold">{{ payment.auction.title[:30] }}{% if payment.auction.title|length > 30 %}...{% endif %}</div>
+                                                        <div class="text-muted">ID: {{ payment.auction_id }}</div>
+                                                    </div>
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted small">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if payment.status == 'completed' %}
+                                                <span class="badge bg-success fs-6">
+                                                    <i class="bi bi-check-circle me-1"></i>{{ payment.get_status_display() }}
+                                                </span>
+                                            {% elif payment.status == 'pending' %}
+                                                <span class="badge bg-warning fs-6">
+                                                    <i class="bi bi-clock me-1"></i>{{ payment.get_status_display() }}
+                                                </span>
+                                            {% elif payment.status == 'failed' %}
+                                                <span class="badge bg-danger fs-6">
+                                                    <i class="bi bi-x-circle me-1"></i>{{ payment.get_status_display() }}
+                                                </span>
+                                            {% elif payment.status == 'refunded' %}
+                                                <span class="badge bg-info fs-6">
+                                                    <i class="bi bi-arrow-counterclockwise me-1"></i>{{ payment.get_status_display() }}
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if payment.processed_at %}
+                                                <div class="small text-muted mt-1">
+                                                    {{ payment.processed_at.strftime('%d.%m %H:%M') }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ url_for('payment.payment_receipt', payment_id=payment.id) }}" 
+                                                   class="btn btn-outline-primary btn-sm"
+                                                   title="Переглянути квитанцію">
+                                                    <i class="bi bi-receipt"></i>
+                                                </a>
+                                                
+                                                {% if payment.failure_reason %}
+                                                <button type="button" 
+                                                        class="btn btn-outline-secondary btn-sm"
+                                                        title="Показати причину помилки"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-title="{{ payment.failure_reason }}">
+                                                    <i class="bi bi-info-circle"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if payments.pages > 1 %}
+                        <div class="card-footer">
+                            <nav aria-label="Навігація по сторінках">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if payments.has_prev %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('payment.payment_history', page=payments.prev_num) }}">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in payments.iter_pages() %}
+                                        {% if page_num %}
+                                            {% if page_num != payments.page %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('payment.payment_history', page=page_num) }}">{{ page_num }}</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ page_num }}</span>
+                                                </li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">…</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if payments.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('payment.payment_history', page=payments.next_num) }}">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+                        
+                    {% else %}
+                        <!-- Empty state -->
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-inbox display-1 text-muted"></i>
+                            </div>
+                            <h5 class="text-muted">Історія платежів пуста</h5>
+                            <p class="text-muted mb-4">
+                                Ви ще не здійснювали жодного платежу. 
+                                Почніть з поповнення балансу для участі в аукціонах.
+                            </p>
+                            <a href="{{ url_for('payment.balance_topup') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Поповнити баланс
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Ініціалізація tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+</script>
+
+<style>
+.table tbody tr:hover {
+    background-color: var(--light-cream) !important;
+}
+
+.badge {
+    font-size: 0.8rem !important;
+}
+
+.font-monospace {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+</style>
+{% endblock %}
