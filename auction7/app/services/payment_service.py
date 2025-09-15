@@ -1,8 +1,8 @@
 # services/payment_service.py
-from app import db
-from app.models.payment import Payment
-from app.models.user import User
-from app.models.auction_participant import AuctionParticipant
+from auction7.app import db
+from auction7.app.models.payment import Payment
+from auction7.app.models.user import User
+from auction7.app.models.auction_participant import AuctionParticipant
 from blockchain_payments.payment_token_discount import get_user_discount
 
 class PaymentService:
@@ -33,7 +33,7 @@ class PaymentService:
             return {"message": "Користувача не знайдено"}, 404
 
         # Застосування знижки за токен
-        from app.services.payment_service import calculate_discounted_price
+        from auction7.app.services.payment_service import calculate_discounted_price
         discounted_amount = calculate_discounted_price(user.wallet_address, amount)
 
         # Перевірка, чи користувач вже сплатив за участь
@@ -74,7 +74,7 @@ class PaymentService:
             return {"message": "Користувача не знайдено"}, 404
 
         # Застосування знижки за токен
-        from app.services.payment_service import calculate_discounted_price
+        from auction7.app.services.payment_service import calculate_discounted_price
         discounted_amount = calculate_discounted_price(user.wallet_address, amount)
 
         # Перевірка наявності коштів

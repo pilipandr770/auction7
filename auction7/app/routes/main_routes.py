@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from flask_login import current_user
 from blockchain_payments.payment_token_discount import get_user_discount
-from app.models.auction import Auction
+from auction7.app.models.auction import Auction
 
 main_bp = Blueprint('main', __name__)
 

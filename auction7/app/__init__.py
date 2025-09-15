@@ -58,31 +58,62 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Реєстрація моделей (за потреби)
+    # Реєстрація моделей та роутів
     from auction7.app.models.user import User
     from auction7.app.models.auction import Auction
     from auction7.app.models.auction_participant import AuctionParticipant
     from auction7.app.models.payment import Payment
     
-    # Temporary - comment out routes for testing
-    # from auction7.app.routes.auth_routes import auth_bp
-    # from auction7.app.routes.user_routes import user_bp
-    # from auction7.app.routes.auction_routes import auction_bp
-    # from auction7.app.routes.main_routes import main_bp
-    # from auction7.app.routes.admin_routes import admin_bp
-    # from auction7.app.routes.payment_routes import payment_bp
-    # from assistans.routes import assistant_bp
-    # from auction7.app.verification.routes import verification_bp
-    # from auction7.app.verification.admin_routes import verification_admin_bp
-    
-    
-    # app.register_blueprint(auth_bp, url_prefix='/auth')
-    # app.register_blueprint(user_bp, url_prefix='/user')
-    # app.register_blueprint(auction_bp, url_prefix='/auction')
-    # app.register_blueprint(main_bp, url_prefix='/')
-    # app.register_blueprint(admin_bp, url_prefix='/admin')
-    # app.register_blueprint(payment_bp, url_prefix='/payment')
-    # app.register_blueprint(assistant_bp)
+    try:
+        from auction7.app.routes.auth_routes import auth_bp
+        app.register_blueprint(auth_bp, url_prefix='/auth')
+    except ImportError as e:
+        print(f"Warning: Could not import auth_routes: {e}")
+        
+    try:
+        from auction7.app.routes.user_routes import user_bp
+        app.register_blueprint(user_bp, url_prefix='/user')
+    except ImportError as e:
+        print(f"Warning: Could not import user_routes: {e}")
+        
+    try:
+        from auction7.app.routes.auction_routes import auction_bp
+        app.register_blueprint(auction_bp, url_prefix='/auction')
+    except ImportError as e:
+        print(f"Warning: Could not import auction_routes: {e}")
+        
+    try:
+        from auction7.app.routes.main_routes import main_bp
+        app.register_blueprint(main_bp, url_prefix='/')
+    except ImportError as e:
+        print(f"Warning: Could not import main_routes: {e}")
+        
+    try:
+        from auction7.app.routes.admin_routes import admin_bp
+        app.register_blueprint(admin_bp, url_prefix='/admin')
+    except ImportError as e:
+        print(f"Warning: Could not import admin_routes: {e}")
+        
+    try:
+        from auction7.app.routes.payment_routes import payment_bp
+        app.register_blueprint(payment_bp, url_prefix='/payment')
+    except ImportError as e:
+        print(f"Warning: Could not import payment_routes: {e}")
+        
+    # Optional routes
+    try:
+        from assistans.routes import assistant_bp
+        app.register_blueprint(assistant_bp)
+    except ImportError:
+        print("Warning: Assistant routes not available")
+        
+    try:
+        from auction7.app.verification.routes import verification_bp
+        from auction7.app.verification.admin_routes import verification_admin_bp
+        app.register_blueprint(verification_bp, url_prefix='/verification')
+        app.register_blueprint(verification_admin_bp, url_prefix='/admin/verification')
+    except ImportError:
+        print("Warning: Verification routes not available")
 
     # Реєстрація обробників помилок
     register_error_handlers(app)
