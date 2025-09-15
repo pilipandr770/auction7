@@ -1,4 +1,4 @@
-from app import db
+from auction7.app import db
 
 class AuctionParticipant(db.Model):
     """

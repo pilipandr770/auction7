@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from app.models.user import User
-from app.models.auction import Auction
+from auction7.app.models.user import User
+from auction7.app.models.auction import Auction
 
 admin_bp = Blueprint('admin', __name__)
 

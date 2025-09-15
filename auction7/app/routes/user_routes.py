@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify, redirect, url_for, flash, render_template
 from flask_login import login_required, current_user
-from app import db
-from app.models.user import User
-from app.models.auction import Auction
-from app.models.auction_participant import AuctionParticipant
-from blockchain_payments.payment_matic import process_payment, send_to_escrow, send_to_admin, release_from_escrow
+from auction7.app import db
+from auction7.app.models.user import User
+from auction7.app.models.auction import Auction
+from auction7.app.models.auction_participant import AuctionParticipant
+# FIXME: blockchain_payments module path needs to be fixed
+# from blockchain_payments.payment_matic import process_payment, send_to_escrow, send_to_admin, release_from_escrow
 
 user_bp = Blueprint('user', __name__)
 

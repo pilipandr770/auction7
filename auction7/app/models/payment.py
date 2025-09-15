@@ -1,4 +1,4 @@
-from app import db
+from auction7.app import db
 
 class Payment(db.Model):
     __tablename__ = 'payments'  # Додано ім'я таблиці для ясності
