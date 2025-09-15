@@ -1,3 +1,4 @@
+import os
 from flask import Flask, session, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -25,9 +26,10 @@ def create_app():
     app = Flask(__name__)
 
     # Конфігурація
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auction.db'  # Змінити для продакшну
+    # Use environment variables for production, fallback to development defaults
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///auction.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'your_secret_key_here'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key_here_change_in_production')
     app.config['SESSION_PERMANENT'] = False
     app.config['SESSION_TYPE'] = 'filesystem'
 
@@ -38,7 +40,7 @@ def create_app():
     login_manager.login_view = 'auth.login'
 
     # Завантаження користувача
-    from app.models.user import User  # Імпорт моделі User
+    from auction7.app.models.user import User  # Імпорт моделі User
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
@@ -48,22 +50,19 @@ def create_app():
     from auction7.app.models.auction import Auction
     from auction7.app.models.auction_participant import AuctionParticipant
     from auction7.app.models.payment import Payment
+    
+    # Реєстрація blueprints
     from auction7.app.routes.auth_routes import auth_bp
     from auction7.app.routes.user_routes import user_bp
     from auction7.app.routes.auction_routes import auction_bp
     from auction7.app.routes.main_routes import main_bp
     from auction7.app.routes.admin_routes import admin_bp
-    from assistans.routes import assistant_bp
-    from auction7.app.verification.routes import verification_bp
-    from auction7.app.verification.admin_routes import verification_admin_bp
-    
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(auction_bp, url_prefix='/auction')
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.register_blueprint(assistant_bp)
 
     # Реєстрація обробників помилок
     register_error_handlers(app)

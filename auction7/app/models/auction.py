@@ -1,6 +1,5 @@
 from sqlalchemy.orm import relationship
-from app.models.auction_participant import AuctionParticipant
-from app import db
+from auction7.app import db
 from sqlalchemy.dialects.sqlite import JSON
 
 
