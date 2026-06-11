@@ -103,7 +103,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.error) {
                     btn.disabled = false;
                     btn.textContent = original;
-                    errBox.innerHTML = `<div class="db-alert db-alert-error">${data.error}</div>`;
+                    errBox.textContent = '';
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'db-alert db-alert-error';
+                    alertDiv.textContent = data.error;  // textContent — no HTML injection
+                    errBox.appendChild(alertDiv);
                     errBox.style.display = 'block';
                 } else {
                     document.getElementById('reveal-price-' + id).textContent = (data.final_price ?? '?') + ' €';
@@ -113,7 +117,11 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (err) {
                 btn.disabled = false;
                 btn.textContent = original;
-                errBox.innerHTML = `<div class="db-alert db-alert-error">Ein Fehler ist aufgetreten. Bitte erneut versuchen.</div>`;
+                errBox.textContent = '';
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'db-alert db-alert-error';
+                alertDiv.textContent = 'Ein Fehler ist aufgetreten. Bitte erneut versuchen.';
+                errBox.appendChild(alertDiv);
                 errBox.style.display = 'block';
             }
         });

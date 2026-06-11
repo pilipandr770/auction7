@@ -49,6 +49,16 @@ def register():
             flash("Alle Felder sind erforderlich", 'error')
             return redirect(url_for('auth.register'))
 
+        if len(username) > 80:
+            flash("Benutzername darf maximal 80 Zeichen haben.", 'error')
+            return redirect(url_for('auth.register'))
+        if len(email) > 120:
+            flash("E-Mail-Adresse ist zu lang.", 'error')
+            return redirect(url_for('auth.register'))
+        if len(password) > 128:
+            flash("Passwort darf maximal 128 Zeichen haben.", 'error')
+            return redirect(url_for('auth.register'))
+
         # Перевірка, чи email вже існує
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:

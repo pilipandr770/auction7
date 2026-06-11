@@ -41,26 +41,27 @@ def auction_stream(auction_id):
     Поточна ціна та кількість учасників НЕ транслюються — це таємниця."""
     app = current_app._get_current_object()
 
+    SSE_MAX_SECONDS = 300  # клієнт перепідключиться сам через EventSource retry
+
     @stream_with_context
     def gen():
-        last_payload = None
-        while True:
+        deadline = time.time() + SSE_MAX_SECONDS
+        while time.time() < deadline:
             with app.app_context():
                 auction = db.session.get(Auction, auction_id)
                 if not auction:
                     yield f"data: {json.dumps({'exists': False})}\n\n"
-                    break
+                    return
                 data = {
                     'exists': True,
                     'is_active': auction.is_active,
                     'frozen': auction.is_frozen(),
                     'seconds_left': auction.freeze_seconds_left(),
                 }
-                db.session.remove()  # свіже читання на наступній ітерації
-            payload = json.dumps(data)
-            # надсилаємо лише коли стан змінився або щоб тримати з'єднання живим
-            yield f"data: {payload}\n\n"
-            last_payload = payload
+                db.session.remove()
+            yield f"data: {json.dumps(data)}\n\n"
+            if not data['is_active']:
+                return  # аукціон завершено — закриваємо стрим
             time.sleep(2)
 
     return Response(gen(), mimetype='text/event-stream',
@@ -96,6 +97,13 @@ def create_auction():
 
     if not title or not description or not starting_price:
         flash("Alle Felder sind erforderlich.", "error")
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
+
+    if len(title) > 255:
+        flash("Titel darf maximal 255 Zeichen haben.", "error")
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
+    if len(description) > 5000:
+        flash("Beschreibung darf maximal 5000 Zeichen haben.", "error")
         return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     # Plattform-Regel: nur NEUE und unbenutzte Artikel
