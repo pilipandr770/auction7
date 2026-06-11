@@ -67,7 +67,7 @@ def add_balance():
     # Прямий endpoint для довільного поповнення видалено з міркувань безпеки.
     return jsonify({"error": "Nicht verfügbar. Bitte Guthaben über die Zahlungsseite aufladen."}), 403
 
-@user_bp.route('/buyer/<string:email>', methods=['GET', 'POST'])
+@user_bp.route('/buyer/<string:email>', methods=['GET'])
 @login_required
 def buyer_dashboard(email):
     if current_user.email != email:
@@ -79,54 +79,15 @@ def buyer_dashboard(email):
         flash("Benutzer nicht gefunden", 'error')
         return redirect(url_for('auth.login'))
 
-    # Активні аукціони
     auctions = Auction.query.filter_by(is_active=True).all()
-    # Аукціони, які очікують підтвердження отримання (переможець — поточний користувач)
     pending_confirmations = Auction.query.filter_by(is_active=False, is_confirmed=False, winner_id=current_user.id).all()
-    # Підтверджені виграші, які ще не оцінені → можна залишити відгук
     from app.models.review import Review
     confirmed_won = Auction.query.filter_by(is_active=False, is_confirmed=True, winner_id=current_user.id).all()
     reviewed_ids = {r.auction_id for r in Review.query.filter_by(reviewer_id=current_user.id).all()}
     reviewable = [a for a in confirmed_won if a.id not in reviewed_ids]
 
-    if request.method == 'POST':
-        auction_id = request.form.get('auction_id')
-        auction = Auction.query.get(auction_id)
-
-        if not auction:
-            flash("Auktion nicht gefunden.", "error")
-            return redirect(url_for('user.buyer_dashboard', email=current_user.email))
-
-        try:
-            view_price = 1.0  # Платний перегляд — щоразу, дохід платформи
-            participant = AuctionParticipant.query.filter_by(auction_id=auction.id, user_id=current_user.id).first()
-
-            if current_user.balance < view_price:
-                flash("Nicht genügend Guthaben für die Preis-Einsicht.", "error")
-                return redirect(url_for('user.buyer_dashboard', email=current_user.email))
-
-            current_user.deduct_balance(view_price)
-
-            # Дохід платформи (адміністратор), а не продавця
-            admin = User.query.filter_by(is_admin=True).first()
-            if admin:
-                admin.add_balance(view_price)
-                admin.platform_balance = (admin.platform_balance or 0) + view_price
-
-            if not participant:
-                participant = AuctionParticipant(auction_id=auction.id, user_id=current_user.id)
-                db.session.add(participant)
-
-            participant.has_viewed_price = True
-            db.session.commit()
-
-            flash(f"Preis-Einsicht erfolgreich! Aktueller Preis: {auction.current_price} €", "success")
-        except Exception as e:
-            db.session.rollback()
-            print(f"Fehler bei der Preis-Einsicht: {e}")
-            flash("Einsicht fehlgeschlagen. Bitte später erneut versuchen.", "error")
-
-    return render_template('users/buyer_dashboard.html', user=user, auctions=auctions, pending_confirmations=pending_confirmations, reviewable=reviewable)
+    return render_template('users/buyer_dashboard.html', user=user, auctions=auctions,
+                           pending_confirmations=pending_confirmations, reviewable=reviewable)
 
 @user_bp.route('/seller/<string:email>', methods=['GET'])
 @login_required

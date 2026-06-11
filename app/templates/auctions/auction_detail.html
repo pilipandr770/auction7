@@ -37,7 +37,7 @@
         <div class="db-modal-section">
             <div class="db-modal-desc-lbl">Beschreibung</div>
             <div class="db-modal-desc">{{ auction.description }}</div>
-            <div class="db-seller">Verkäufer: <strong>{{ auction.seller.username }}</strong> ({{ auction.seller.email }})</div>
+            <div class="db-seller">Verkäufer: <strong>{{ auction.seller.username }}</strong></div>
         </div>
 
         {% if auction.is_active and current_user.is_authenticated %}
