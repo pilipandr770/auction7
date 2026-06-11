@@ -33,6 +33,7 @@
                     Um Erlöse für verkaufte Lose zu erhalten, aktivieren Sie Auszahlungen über Stripe (Verifizierung und Bankdaten).
                 </p>
                 <form method="POST" action="{{ url_for('payments.connect_onboard') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="db-btn db-btn-primary">Auszahlungen über Stripe aktivieren</button>
                 </form>
             {% endif %}
@@ -51,6 +52,7 @@
                 </p>
             {% endif %}
             <form method="POST" action="{{ url_for('user.save_tax_info') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="db-field">
                     <label for="seller_type">Verkäufertyp</label>
                     <select id="seller_type" name="seller_type" class="db-select">
@@ -86,6 +88,7 @@
         <div class="db-panel-head"><h2 style="font-size:18px;">Neue Auktion erstellen</h2></div>
         <div class="db-panel-body">
             <form action="{{ url_for('auction.create_auction') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="db-field">
                     <label for="title">Artikelname</label>
                     <input type="text" id="title" name="title" class="db-input" placeholder="z.B. Apple iPhone 15 Pro" required>
@@ -122,6 +125,7 @@
         <div class="db-panel-head"><h2 style="font-size:18px;">Öffentliches Profil</h2></div>
         <div class="db-panel-body">
             <form method="POST" action="{{ url_for('user.save_seller_profile') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="db-field">
                     <label for="google_business_url">Google-Unternehmensprofil (Link)</label>
                     <input type="url" id="google_business_url" name="google_business_url" class="db-input" value="{{ user.google_business_url or '' }}" placeholder="https://g.page/...">
@@ -148,6 +152,7 @@
                         <span class="db-liability business">✓ Echtheit bestätigt</span>
                     {% else %}
                         <form method="POST" action="{{ url_for('user.confirm_listing', auction_id=a.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="db-btn db-btn-dark db-btn-sm">Echtheit bestätigen</button>
                         </form>
                     {% endif %}
@@ -193,6 +198,7 @@
         <div class="db-action-title" style="color:var(--red);">Konto löschen</div>
         <div class="db-action-desc">Ihre persönlichen Daten werden anonymisiert (Recht auf Löschung, Art. 17 DSGVO). Transaktionsbelege bleiben aus steuerlichen Gründen erhalten. Nicht möglich bei aktiven Auktionen.</div>
         <form method="POST" action="{{ url_for('user.delete_account') }}" onsubmit="return confirm('Konto wirklich unwiderruflich löschen?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="db-btn db-btn-sm" style="background:var(--red);color:#fff;">Konto endgültig löschen</button>
         </form>
     </div>

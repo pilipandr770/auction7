@@ -11,6 +11,7 @@
         </div>
         <div class="db-panel-body">
             <form method="POST" action="{{ url_for('auth.register') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="db-field">
                     <label for="username">Benutzername</label>
                     <input type="text" id="username" name="username" class="db-input" placeholder="Ihr Name" required>

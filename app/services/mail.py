@@ -10,11 +10,17 @@ def is_configured():
     return bool(cfg.get('MAIL_SERVER') and cfg.get('MAIL_USERNAME'))
 
 
+def _sanitize_header(value: str) -> str:
+    return value.replace('\r', '').replace('\n', '') if value else ''
+
+
 def send_email(to, subject, body):
     """Versendet eine E-Mail. Gibt True bei Versand/Log zurück, False bei Fehler.
     Ohne SMTP-Konfiguration wird die Nachricht nur protokolliert (Dev)."""
     if not to:
         return False
+    subject = _sanitize_header(subject)
+    to = _sanitize_header(to)
     cfg = current_app.config
     sender = cfg.get('MAIL_FROM') or cfg.get('MAIL_USERNAME') or 'noreply@dropbid.local'
 

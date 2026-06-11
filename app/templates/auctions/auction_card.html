@@ -126,6 +126,7 @@
             <div class="db-action-title">Auktion abschließen</div>
             <div class="db-action-desc">Zahlen Sie den aktuellen Preis und holen Sie die Ware ab. Geld liegt im Treuhand bis zur Empfangsbestätigung.</div>
             <form method="POST" action="{{ url_for('user.close_auction', auction_id=auction.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="db-btn db-btn-primary db-btn-block">Abschließen und kaufen</button>
             </form>
           </div>
@@ -185,6 +186,7 @@
           <div class="db-action-title">Sie haben diese Auktion gewonnen! 🎉</div>
           <div class="db-action-desc">Bestätigen Sie den Erhalt der Ware, damit das Geld aus dem Treuhand an den Verkäufer geht.</div>
           <form method="POST" action="{{ url_for('user.confirm_receive', auction_id=auction.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="db-btn db-btn-primary db-btn-block">Erhalt bestätigen</button>
           </form>
         </div>

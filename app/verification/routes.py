@@ -5,6 +5,10 @@ from .forms import SellerRegisterForm
 from .models import SellerVerification
 from app import db
 import os
+import uuid
+from werkzeug.utils import secure_filename
+
+ALLOWED_DOC_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png'}
 
 verification_bp = Blueprint('verification', __name__, url_prefix='/verification')
 UPLOAD_FOLDER = os.path.join('app', 'static', 'verification_docs')
@@ -17,7 +21,12 @@ def register_seller():
     if form.validate_on_submit():
         document_path = None
         if form.document.data:
-            filename = form.document.data.filename
+            original_filename = secure_filename(form.document.data.filename)
+            ext = original_filename.rsplit('.', 1)[-1].lower() if '.' in original_filename else ''
+            if ext not in ALLOWED_DOC_EXTENSIONS:
+                flash("Nur PDF, JPG und PNG erlaubt.", "danger")
+                return render_template('verification/register.html', form=form)
+            filename = f"{uuid.uuid4().hex}.{ext}"
             document_path = os.path.join(UPLOAD_FOLDER, filename)
             form.document.data.save(document_path)
 

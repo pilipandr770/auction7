@@ -11,6 +11,7 @@
         </div>
         <div class="db-panel-body">
             <form method="POST" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="db-field">
                     <label for="email">E-Mail</label>
                     <input type="email" id="email" name="email" class="db-input" placeholder="du@beispiel.de" required>

@@ -11,6 +11,7 @@
         </div>
         <div class="db-panel-body">
             <form id="create-auction-form" enctype="multipart/form-data" method="POST" action="{{ url_for('auction.create_auction') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="db-field">
                     <label for="title">Artikelname</label>
                     <input type="text" id="title" name="title" class="db-input" placeholder="Name eingeben" required>

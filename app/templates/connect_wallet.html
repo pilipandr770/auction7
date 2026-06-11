@@ -14,6 +14,7 @@
                 Geben Sie die Wallet-Adresse manuell ein oder verbinden Sie über MetaMask.
             </p>
             <form method="POST" action="{{ url_for('user.connect_wallet') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="db-field">
                     <label for="wallet_address">Wallet-Adresse</label>
                     <input type="text" id="wallet_address" name="wallet_address" class="db-input" placeholder="0x..." required>

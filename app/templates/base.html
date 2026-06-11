@@ -11,6 +11,8 @@
 
     <!-- DropBid Design-System -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <!-- CSRF token for JS fetch() calls -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body>

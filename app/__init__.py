@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 import os
 
@@ -13,6 +14,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 limiter = Limiter(key_func=get_remote_address, default_limits=[])
+csrf = CSRFProtect()
 
 
 def register_error_handlers(app):
@@ -43,6 +45,12 @@ def create_app():
     app.config['SECRET_KEY'] = secret_key
     app.config['SESSION_PERMANENT'] = False
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+    # Session cookie security
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+    # WTF CSRF
+    app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1h token lifetime
 
     # Stripe (платежі, Connect Express)
     app.config['STRIPE_SECRET_KEY'] = os.getenv('STRIPE_SECRET_KEY', '')
@@ -64,7 +72,24 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     limiter.init_app(app)
+    csrf.init_app(app)
     login_manager.login_view = 'auth.login'
+
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "font-src 'self' https://cdn.jsdelivr.net; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "frame-src https://js.stripe.com https://hooks.stripe.com;"
+        )
+        return response
 
     from app.models.user import User
 

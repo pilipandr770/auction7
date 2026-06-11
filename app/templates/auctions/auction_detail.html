@@ -55,6 +55,7 @@
                 <div class="db-action-title">Auktion abschließen</div>
                 <div class="db-action-desc">Zahlen Sie den aktuellen Preis und holen Sie die Ware ab. Geld im Treuhand bis zur Bestätigung.</div>
                 <form method="POST" action="{{ url_for('user.close_auction', auction_id=auction.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="db-btn db-btn-primary db-btn-block">Abschließen und kaufen</button>
                 </form>
             </div>

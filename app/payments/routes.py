@@ -3,7 +3,7 @@ from flask import (Blueprint, redirect, url_for, flash, request, jsonify,
                    render_template, current_app)
 from flask_login import login_required, current_user
 
-from app import db, limiter
+from app import db, limiter, csrf
 from app.models.user import User
 from app.models.transaction import Transaction
 from app.payments import stripe_service as ss
@@ -154,6 +154,7 @@ def card_saved():
 # ── Webhook ───────────────────────────────────────────────────────────────────
 
 @payments_bp.route('/webhook', methods=['POST'])
+@csrf.exempt  # Stripe подписывает запрос своим HMAC — CSRF-токен не нужен
 def webhook():
     payload = request.get_data()
     sig = request.headers.get('Stripe-Signature', '')

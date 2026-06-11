@@ -2,6 +2,9 @@
 //  DropBid — frontend interactions
 // ════════════════════════════════════════════════════════════
 
+// CSRF token for all state-changing fetch() calls
+const _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
 // MetaMask wallet connect
 async function connectWallet() {
     if (window.ethereum) {
@@ -62,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.disabled = true;
             btn.textContent = '⏳ Wird verarbeitet...';
             try {
-                const resp = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const resp = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': _csrfToken } });
                 const data = await resp.json();
                 if (data.error) {
                     btn.textContent = original;
@@ -98,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const original = btn.textContent;
             btn.textContent = '⏳...';
             try {
-                const resp = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const resp = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': _csrfToken } });
                 const data = await resp.json();
                 if (data.error) {
                     btn.disabled = false;
@@ -217,7 +220,7 @@ async function reportAuction(id) {
     try {
         const r = await fetch('/auction/' + id + '/report', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken },
             body: JSON.stringify({ reason: reason })
         });
         const d = await r.json();
