@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>DropBid — Dutch Auction</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+<style>
+  :root {
+    --amber: #f59e0b;
+    --amber-light: #fef3c7;
+    --stone-900: #1c1917;
+    --stone-800: #292524;
+    --stone-700: #44403c;
+    --stone-400: #a8a29e;
+    --stone-200: #e7e5e4;
+    --stone-100: #f5f5f4;
+    --stone-50: #fafaf9;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: Georgia, serif; background: var(--stone-50); margin: 0; }
+
+  /* Topbar */
+  .topbar { background: var(--stone-900); color: #a8a29e; font-size: 11px; text-align: center; padding: 6px; letter-spacing: .05em; }
+
+  /* Nav */
+  nav { background: #fff; border-bottom: 1px solid var(--stone-200); position: sticky; top: 0; z-index: 100; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 20px; font-weight: 700; color: var(--stone-900); }
+  .logo span { color: var(--amber); }
+  .nav-sub { font-size: 11px; color: var(--stone-400); border-left: 1px solid var(--stone-200); padding-left: 12px; margin-left: 12px; }
+  .btn-reg { background: var(--amber); border: none; font-weight: 700; font-size: 11px; padding: 6px 16px; text-transform: uppercase; letter-spacing: .08em; cursor: pointer; transition: background .15s; font-family: Georgia, serif; }
+  .btn-reg:hover { background: #d97706; }
+  .btn-login { background: none; border: none; color: var(--stone-400); font-size: 12px; cursor: pointer; margin-right: 12px; font-family: Georgia, serif; }
+
+  /* Hero */
+  .hero { background: var(--stone-900); color: #fff; padding: 48px 24px; }
+  .hero-inner { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .hero-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .15em; color: var(--amber); margin-bottom: 12px; }
+  .hero h1 { font-size: 36px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; }
+  .hero h1 em { color: var(--amber); font-style: normal; }
+  .hero p { color: #a8a29e; font-size: 13px; line-height: 1.7; margin-bottom: 24px; }
+  .hero-btns { display: flex; gap: 12px; }
+  .btn-primary { background: var(--amber); color: var(--stone-900); font-weight: 700; font-size: 12px; padding: 10px 24px; text-transform: uppercase; letter-spacing: .08em; border: none; cursor: pointer; font-family: Georgia, serif; transition: background .15s; }
+  .btn-primary:hover { background: #d97706; }
+  .btn-ghost { background: none; border: 1px solid #57534e; color: #a8a29e; font-size: 12px; padding: 10px 20px; text-transform: uppercase; letter-spacing: .08em; cursor: pointer; font-family: Georgia, serif; transition: border-color .15s, color .15s; }
+  .btn-ghost:hover { border-color: #a8a29e; color: #fff; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-box { background: #292524; border: 1px solid #44403c; padding: 16px; }
+  .stat-val { font-size: 24px; font-weight: 700; color: var(--amber); margin-bottom: 4px; }
+  .stat-lbl { font-size: 11px; color: #a8a29e; }
+
+  /* How it works */
+  .how { border-top: 1px solid var(--stone-200); border-bottom: 1px solid var(--stone-200); background: var(--stone-100); padding: 40px 24px; }
+  .how-inner { max-width: 960px; margin: 0 auto; }
+  .how-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .15em; color: var(--amber); text-align: center; margin-bottom: 24px; }
+  .how-steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 1px solid var(--stone-200); }
+  .how-step { padding: 24px 28px; border-right: 1px solid var(--stone-200); }
+  .how-step:last-child { border-right: none; }
+  .how-num { font-size: 36px; font-weight: 700; color: #d6d3d1; margin-bottom: 8px; }
+  .how-title { font-weight: 700; font-size: 13px; color: var(--stone-900); margin-bottom: 8px; }
+  .how-desc { font-size: 12px; color: var(--stone-400); line-height: 1.6; }
+  .how-note { background: var(--amber-light); border: 1px solid #fcd34d; padding: 10px 20px; font-size: 12px; color: #92400e; text-align: center; margin-top: 16px; }
+
+  /* Auctions */
+  .auctions-section { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .section-title { font-size: 20px; font-weight: 700; color: var(--stone-900); }
+  .filter-bar { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filter-btn { font-size: 11px; padding: 4px 12px; text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--stone-200); background: #fff; color: var(--stone-400); cursor: pointer; font-family: Georgia, serif; transition: all .15s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--stone-900); color: #fff; border-color: var(--stone-900); }
+  .auctions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* Card */
+  .auction-card { background: #fff; border: 1px solid var(--stone-200); cursor: pointer; display: flex; flex-direction: column; transition: border-color .2s, box-shadow .2s; }
+  .auction-card:hover { border-color: var(--amber); box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+  .card-img { background: var(--stone-100); border-bottom: 1px solid var(--stone-200); height: 160px; display: flex; align-items: center; justify-content: center; font-size: 64px; position: relative; }
+  .badge-drop { position: absolute; top: 8px; right: 8px; background: var(--amber); color: #1c1917; font-size: 11px; font-weight: 700; padding: 2px 8px; text-transform: uppercase; letter-spacing: .06em; }
+  .badge-cat { position: absolute; bottom: 8px; right: 8px; background: var(--stone-900); color: #d6d3d1; font-size: 10px; padding: 2px 7px; }
+  .card-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .card-title { font-weight: 700; font-size: 13px; color: var(--stone-900); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-title:hover { color: #b45309; }
+  .price-row { display: flex; align-items: baseline; gap: 8px; }
+  .price-current { font-size: 22px; font-weight: 700; color: var(--stone-900); font-variant-numeric: tabular-nums; }
+  .price-start { font-size: 13px; color: var(--stone-400); text-decoration: line-through; }
+  .progress-wrap { }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--stone-400); margin-bottom: 4px; }
+  .progress-labels span:last-child { color: var(--amber); font-weight: 600; }
+  .progress-bar-outer { height: 6px; background: var(--stone-100); overflow: hidden; }
+  .progress-bar-inner { height: 100%; background: var(--amber); transition: width .5s; }
+  .card-footer { display: flex; justify-content: space-between; font-size: 11px; color: var(--stone-400); padding-top: 10px; border-top: 1px solid var(--stone-100); margin-top: auto; }
+  .card-footer strong { color: var(--stone-700); }
+  .card-entry { background: var(--stone-100); border: 1px solid var(--stone-200); padding: 7px 12px; font-size: 11px; text-align: center; color: var(--stone-400); }
+  .card-entry strong { color: #b45309; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--stone-200); background: #fff; padding: 20px 24px; }
+  .footer-inner { max-width: 960px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--stone-400); }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a { color: var(--stone-400); text-decoration: none; }
+  .footer-links a:hover { color: var(--stone-700); }
+
+  /* Modal overlay */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: #fff; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; font-family: Georgia, serif; }
+  .modal-header { background: var(--stone-900); color: #fff; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-header-text { flex: 1; }
+  .modal-cat { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--amber); margin-bottom: 4px; }
+  .modal-title { font-weight: 700; font-size: 15px; line-height: 1.3; }
+  .modal-emoji { font-size: 44px; margin-left: 16px; }
+  .modal-prices { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid var(--stone-200); }
+  .price-cell { padding: 16px; text-align: center; border-right: 1px solid var(--stone-200); }
+  .price-cell:last-child { border-right: none; }
+  .price-cell.highlight { background: #fef9ee; }
+  .price-cell-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--stone-400); margin-bottom: 4px; }
+  .price-cell.highlight .price-cell-lbl { color: var(--amber); }
+  .price-cell-val { font-size: 18px; font-weight: 700; color: var(--stone-900); }
+  .price-cell-val.striked { color: var(--stone-400); text-decoration: line-through; }
+  .price-cell-val.green { color: #16a34a; }
+
+  /* Escrow bar */
+  .escrow-section { padding: 16px 24px; border-bottom: 1px solid var(--stone-200); }
+  .escrow-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--stone-400); margin-bottom: 8px; }
+  .escrow-bar { height: 16px; display: flex; overflow: hidden; margin-bottom: 4px; }
+  .escrow-collected { background: var(--amber); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--stone-900); transition: width .7s; }
+  .escrow-remaining { background: var(--stone-200); flex: 1; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--stone-400); }
+  .escrow-meta { display: flex; justify-content: space-between; font-size: 11px; }
+  .escrow-meta span:first-child { color: var(--amber); }
+  .escrow-meta span:last-child { color: var(--stone-400); }
+
+  /* Actions */
+  .actions-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--stone-200); }
+  .action-cell { padding: 20px; }
+  .action-cell:first-child { border-right: 1px solid var(--stone-200); }
+  .action-title { font-weight: 700; font-size: 13px; color: var(--stone-900); margin-bottom: 6px; }
+  .action-desc { font-size: 11px; color: var(--stone-400); line-height: 1.6; margin-bottom: 12px; }
+  .btn-join { width: 100%; background: var(--stone-900); color: #fff; font-weight: 700; font-size: 11px; padding: 10px; text-transform: uppercase; letter-spacing: .08em; border: none; cursor: pointer; font-family: Georgia, serif; transition: background .15s; }
+  .btn-join:hover { background: var(--stone-700); }
+  .btn-join:disabled { opacity: .4; cursor: default; }
+  .btn-close { width: 100%; background: var(--amber); color: var(--stone-900); font-weight: 700; font-size: 11px; padding: 10px; text-transform: uppercase; letter-spacing: .08em; border: none; cursor: pointer; font-family: Georgia, serif; transition: background .15s; }
+  .btn-close:hover { background: #d97706; }
+  .btn-close:disabled { background: var(--stone-200); color: var(--stone-400); cursor: default; }
+  .joined-badge { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; text-align: center; padding: 9px; font-weight: 600; }
+
+  /* Reveal panel */
+  .reveal-panel { background: var(--stone-900); color: #fff; padding: 20px 24px; border-left: 4px solid var(--amber); }
+  .reveal-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #78716c; margin-bottom: 12px; }
+  .reveal-desc { font-size: 12px; color: #a8a29e; line-height: 1.6; margin-bottom: 16px; }
+  .btn-reveal { width: 100%; background: var(--amber); color: var(--stone-900); font-weight: 700; font-size: 11px; padding: 10px; text-transform: uppercase; letter-spacing: .08em; border: none; cursor: pointer; font-family: Georgia, serif; transition: background .15s; }
+  .btn-reveal:hover { background: #d97706; }
+  .reveal-data { display: none; }
+  .reveal-data.show { display: block; }
+  .reveal-frozen { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--amber); text-align: center; margin-bottom: 12px; }
+  .reveal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .reveal-box { background: #292524; padding: 16px; text-align: center; }
+  .reveal-val { font-size: 22px; font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; }
+  .reveal-box-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #78716c; margin-top: 4px; }
+  .reveal-box .reveal-val.white { color: #fff; }
+  .reveal-countdown { text-align: center; }
+  .countdown-num { font-size: 40px; font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; }
+  .countdown-sec { font-size: 13px; color: #78716c; margin-left: 6px; }
+  .reveal-progress { height: 4px; background: #44403c; margin-top: 8px; }
+  .reveal-progress-bar { height: 100%; background: var(--amber); transition: width 1s linear; }
+  .reveal-done { display: none; text-align: center; }
+  .reveal-done.show { display: block; }
+  .btn-reveal-again { border: 1px solid var(--amber); color: var(--amber); background: none; font-size: 11px; font-weight: 700; padding: 6px 16px; text-transform: uppercase; letter-spacing: .08em; cursor: pointer; font-family: Georgia, serif; transition: all .15s; margin-top: 8px; }
+  .btn-reveal-again:hover { background: var(--amber); color: var(--stone-900); }
+
+  /* Modal meta */
+  .modal-meta { background: var(--stone-100); padding: 10px 24px; display: flex; gap: 20px; font-size: 11px; color: var(--stone-400); }
+
+  .close-btn { background: none; border: none; color: #78716c; font-size: 20px; cursor: pointer; line-height: 1; }
+  .close-btn:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="topbar">🔒 Ескроу-захист · ✅ Перевірені продавці · ⚡ Ціна знижується в реальному часі</div>
+
+<nav>
+  <div style="display:flex;align-items:center">
+    <div class="logo">Drop<span>Bid</span></div>
+    <div class="nav-sub">Аукціони зі зниженням ціни</div>
+  </div>
+  <div>
+    <button class="btn-login">Увійти</button>
+    <button class="btn-reg">Реєстрація</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-tag">Dutch Auction Platform</div>
+      <h1>Ціна падає.<br><em>Ти вирішуєш — коли купити.</em></h1>
+      <p>Кожен учасник знижує ціну своїм внеском. Чим більше людей увійшло — тим дешевший товар. Закрий аукціон коли вигідно, або чекай далі.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="document.getElementById('auctions').scrollIntoView({behavior:'smooth'})">Переглянути лоти ↓</button>
+        <button class="btn-ghost" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">Як це працює</button>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-val">47</div><div class="stat-lbl">Активних аукціонів</div></div>
+      <div class="stat-box"><div class="stat-val">31%</div><div class="stat-lbl">Середня знижка</div></div>
+      <div class="stat-box"><div class="stat-val">1 240</div><div class="stat-lbl">Учасників сьогодні</div></div>
+      <div class="stat-box"><div class="stat-val">€98k</div><div class="stat-lbl">Захищено ескроу</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="how" id="how">
+  <div class="how-inner">
+    <div class="how-tag">Як це працює</div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <div class="how-title">Купи вхідний квиток</div>
+        <div class="how-desc">Сплати 1% від стартової ціни. Ціна лоту знижується на цю суму. На 5 секунд відкривається точна ціна та кількість учасників.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <div class="how-title">Стежи або чекай</div>
+        <div class="how-desc">Переглядай ціну за €1 в будь-який момент. Що більше учасників заходить — то нижча ціна. Ти вирішуєш коли зупинитись.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <div class="how-title">Закрий і забирай</div>
+        <div class="how-desc">Готовий? Доплати поточну ціну і товар твій. Гроші в ескроу — продавець отримає після твого підтвердження отримання товару.</div>
+      </div>
+    </div>
+    <div class="how-note"><strong>Продавець завжди отримує ринкову ціну.</strong> Сума всіх вхідних внесків + фінальний залишок = стартова ціна. Без ризику.</div>
+  </div>
+</div>
+
+<div class="auctions-section" id="auctions">
+  <div class="section-header">
+    <div class="section-title">Активні аукціони</div>
+    <div class="filter-bar" id="filterBar"></div>
+  </div>
+  <div class="auctions-grid" id="auctionsGrid"></div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="logo" style="font-size:15px">Drop<span>Bid</span></div>
+    <div class="footer-links">
+      <a href="#">Конфіденційність</a>
+      <a href="#">Умови</a>
+      <a href="#">Контакти</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <div class="modal-cat" id="mCat"></div>
+        <div class="modal-title" id="mTitle"></div>
+      </div>
+      <div class="modal-emoji" id="mEmoji"></div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-prices">
+      <div class="price-cell">
+        <div class="price-cell-lbl">Стартова</div>
+        <div class="price-cell-val striked" id="mStart"></div>
+      </div>
+      <div class="price-cell highlight">
+        <div class="price-cell-lbl">Зараз ~</div>
+        <div class="price-cell-val" id="mCurrent"></div>
+      </div>
+      <div class="price-cell">
+        <div class="price-cell-lbl">Знижено</div>
+        <div class="price-cell-val green" id="mDrop"></div>
+      </div>
+    </div>
+    <div class="escrow-section">
+      <div class="escrow-lbl">Ескроу-рахунок аукціону</div>
+      <div class="escrow-bar">
+        <div class="escrow-collected" id="mEscrowCollected"></div>
+        <div class="escrow-remaining" id="mEscrowRemaining"></div>
+      </div>
+      <div class="escrow-meta">
+        <span id="mCollectedLbl"></span>
+        <span id="mParticipantsLbl"></span>
+        <span id="mRemainingLbl"></span>
+      </div>
+    </div>
+    <div class="actions-grid">
+      <div class="action-cell">
+        <div class="action-title">Взяти участь</div>
+        <div class="action-desc" id="mJoinDesc"></div>
+        <div id="mJoinBtn">
+          <button class="btn-join" id="joinBtn" onclick="handleJoin()">Завантаження...</button>
+        </div>
+      </div>
+      <div class="action-cell">
+        <div class="action-title">Закрити аукціон</div>
+        <div class="action-desc" id="mCloseDesc"></div>
+        <button class="btn-close" id="closeAuctionBtn" onclick="handleClose()" disabled>Спочатку увійдіть</button>
+      </div>
+    </div>
+    <div class="reveal-panel">
+      <div class="reveal-lbl">Перегляд поточної ціни</div>
+      <div id="revealIdle">
+        <div class="reveal-desc">Дізнайтесь точну поточну ціну та кількість учасників. Інформація відображається <strong style="color:var(--amber)">5 секунд</strong>. Нові входи заморожуються.</div>
+        <button class="btn-reveal" onclick="startReveal()">Переглянути за €1.00</button>
+      </div>
+      <div class="reveal-data" id="revealData">
+        <div class="reveal-frozen">🔒 Входи заморожено</div>
+        <div class="reveal-grid">
+          <div class="reveal-box">
+            <div class="reveal-val" id="revealPrice"></div>
+            <div class="reveal-box-lbl">Поточна ціна</div>
+          </div>
+          <div class="reveal-box">
+            <div class="reveal-val white" id="revealPart"></div>
+            <div class="reveal-box-lbl">Учасників</div>
+          </div>
+        </div>
+        <div class="reveal-countdown">
+          <span class="countdown-num" id="countdownNum">5</span>
+          <span class="countdown-sec">сек</span>
+        </div>
+        <div class="reveal-progress"><div class="reveal-progress-bar" id="progressBar" style="width:100%"></div></div>
+      </div>
+      <div class="reveal-done" id="revealDone">
+        <div style="color:#78716c;font-size:12px;margin-bottom:10px">Час вийшов. Ціна знову прихована.</div>
+        <button class="btn-reveal-again" onclick="startReveal()">Ще раз за €1.00</button>
+      </div>
+    </div>
+    <div class="modal-meta">
+      <span>⏱ <span id="mTimeLeft"></span></span>
+      <span>🔒 Ескроу</span>
+      <span>✅ Перевірений продавець</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const AUCTIONS = [
+  { id:1, title:'Apple iPhone 15 Pro 256GB', category:'Electronics', start:1000, current:740, participants:26, emoji:'📱', timeLeft:'2д 14г' },
+  { id:2, title:'Sony PlayStation 5 + 2 контролери', category:'Gaming', start:600, current:480, participants:12, emoji:'🎮', timeLeft:'6г 22хв' },
+  { id:3, title:'MacBook Air M2 512GB Space Grey', category:'Electronics', start:1400, current:1050, participants:35, emoji:'💻', timeLeft:'4д 3г' },
+  { id:4, title:'Dyson V15 Detect Vacuum Cleaner', category:'Home', start:550, current:385, participants:21, emoji:'🌀', timeLeft:'18г 40хв' },
+  { id:5, title:'Canon EOS R6 Mark II Body', category:'Photo', start:2200, current:1980, participants:4, emoji:'📷', timeLeft:'5д 1г' },
+  { id:6, title:'Apple Watch Ultra 2 Titanium', category:'Wearables', start:900, current:720, participants:18, emoji:'⌚', timeLeft:'1д 7г' },
+];
+
+let currentAuction = null;
+let joined = false;
+let revealTimer = null;
+
+function dropPct(a) { return Math.round((a.start - a.current) / a.start * 100); }
+function entryFee(a) { return (a.start * 0.01).toFixed(2); }
+
+// Render filter buttons
+const cats = ['Всі', 'Electronics', 'Gaming', 'Home', 'Photo', 'Wearables'];
+let activeFilter = 'Всі';
+const filterBar = document.getElementById('filterBar');
+cats.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn' + (cat === 'Всі' ? ' active' : '');
+  btn.textContent = cat;
+  btn.onclick = () => {
+    activeFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCards();
+  };
+  filterBar.appendChild(btn);
+});
+
+function renderCards() {
+  const grid = document.getElementById('auctionsGrid');
+  const filtered = activeFilter === 'Всі' ? AUCTIONS : AUCTIONS.filter(a => a.category === activeFilter);
+  grid.innerHTML = filtered.map(a => {
+    const drop = dropPct(a);
+    const priceProgress = (a.current / a.start * 100).toFixed(1);
+    const fee = entryFee(a);
+    return `
+      <div class="auction-card" onclick="openModal(${a.id})">
+        <div class="card-img">
+          <span>${a.emoji}</span>
+          <div class="badge-drop">-${drop}%</div>
+          <div class="badge-cat">${a.category}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">${a.title}</div>
+          <div class="price-row">
+            <span class="price-current">€${a.current}</span>
+            <span class="price-start">€${a.start}</span>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-labels"><span>Ціна знижена</span><span>${drop}%</span></div>
+            <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${priceProgress}%"></div></div>
+          </div>
+          <div class="card-footer">
+            <span>👤 <strong>${a.participants}</strong> учасників</span>
+            <span>⏱ ${a.timeLeft}</span>
+          </div>
+          <div class="card-entry">Вхід: <strong>€${fee}</strong> · знижує ціну</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+renderCards();
+
+function openModal(id) {
+  currentAuction = AUCTIONS.find(a => a.id === id);
+  if (!currentAuction) return;
+  joined = false;
+  const a = currentAuction;
+  const drop = dropPct(a);
+  const collected = a.start - a.current;
+  const fee = entryFee(a);
+  const collectedPct = (collected / a.start * 100).toFixed(1);
+  const remainingPct = (a.current / a.start * 100).toFixed(1);
+
+  document.getElementById('mCat').textContent = a.category;
+  document.getElementById('mTitle').textContent = a.title;
+  document.getElementById('mEmoji').textContent = a.emoji;
+  document.getElementById('mStart').textContent = '€' + a.start;
+  document.getElementById('mCurrent').textContent = '€' + a.current;
+  document.getElementById('mDrop').textContent = '-' + drop + '%';
+
+  const ec = document.getElementById('mEscrowCollected');
+  ec.style.width = collectedPct + '%';
+  ec.textContent = collected > 60 ? '€' + collected : '';
+  document.getElementById('mEscrowRemaining').textContent = a.current > 60 ? '€' + a.current : '';
+  document.getElementById('mCollectedLbl').textContent = 'Зібрано: €' + collected;
+  document.getElementById('mParticipantsLbl').textContent = a.participants + ' учасників';
+  document.getElementById('mRemainingLbl').textContent = 'Залишок: €' + a.current;
+
+  document.getElementById('mJoinDesc').textContent = `Вхідний внесок €${fee} знизить ціну на €${fee}. На 5 секунд відкриється поточна ціна та кількість учасників.`;
+  document.getElementById('joinBtn').textContent = `Увійти за €${fee}`;
+  document.getElementById('joinBtn').disabled = false;
+  document.getElementById('mJoinBtn').innerHTML = `<button class="btn-join" id="joinBtn" onclick="handleJoin()">Увійти за €${fee}</button>`;
+
+  document.getElementById('mCloseDesc').textContent = `Потрібно спочатку взяти участь, щоб закрити аукціон.`;
+  document.getElementById('closeAuctionBtn').textContent = 'Спочатку увійдіть';
+  document.getElementById('closeAuctionBtn').disabled = true;
+
+  document.getElementById('mTimeLeft').textContent = a.timeLeft;
+
+  // Reset reveal
+  resetReveal();
+
+  document.getElementById('revealPrice').textContent = '€' + a.current;
+  document.getElementById('revealPart').textContent = a.participants;
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  if (revealTimer) { clearInterval(revealTimer); revealTimer = null; }
+}
+
+function handleJoin() {
+  const btn = document.getElementById('joinBtn');
+  btn.textContent = '⏳ Обробка...';
+  btn.disabled = true;
+  setTimeout(() => {
+    joined = true;
+    document.getElementById('mJoinBtn').innerHTML = `<div class="joined-badge">✓ Ви учасник аукціону</div>`;
+    const a = currentAuction;
+    document.getElementById('mCloseDesc').textContent = `Доплатіть ~€${a.current} і отримайте товар. Гроші в ескроу до підтвердження.`;
+    document.getElementById('closeAuctionBtn').textContent = `Купити за ~€${a.current}`;
+    document.getElementById('closeAuctionBtn').disabled = false;
+  }, 600);
+}
+
+function handleClose() {
+  alert('Аукціон закрито! Підтвердіть отримання товару після доставки, щоб продавець отримав оплату.');
+}
+
+function resetReveal() {
+  if (revealTimer) { clearInterval(revealTimer); revealTimer = null; }
+  document.getElementById('revealIdle').style.display = 'block';
+  document.getElementById('revealData').classList.remove('show');
+  document.getElementById('revealDone').classList.remove('show');
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('countdownNum').textContent = '5';
+}
+
+function startReveal() {
+  if (revealTimer) { clearInterval(revealTimer); revealTimer = null; }
+  document.getElementById('revealIdle').style.display = 'none';
+  document.getElementById('revealData').classList.add('show');
+  document.getElementById('revealDone').classList.remove('show');
+  let sec = 5;
+  document.getElementById('countdownNum').textContent = sec;
+  document.getElementById('progressBar').style.transition = 'none';
+  document.getElementById('progressBar').style.width = '100%';
+  setTimeout(() => { document.getElementById('progressBar').style.transition = 'width 1s linear'; }, 50);
+
+  revealTimer = setInterval(() => {
+    sec--;
+    document.getElementById('countdownNum').textContent = sec;
+    document.getElementById('progressBar').style.width = ((sec / 5) * 100) + '%';
+    if (sec <= 0) {
+      clearInterval(revealTimer);
+      revealTimer = null;
+      document.getElementById('revealData').classList.remove('show');
+      document.getElementById('revealDone').classList.add('show');
+    }
+  }, 1000);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

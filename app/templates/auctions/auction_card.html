@@ -1,0 +1,203 @@
+{# ── DropBid Auktionskarte + Modal ─────────────────────────────
+   Aktueller Preis und Teilnehmerzahl sind geheim.
+   Werden nur per Einsicht für 1 Kredit (5-Sekunden-Fenster) sichtbar.
+   Erwartet: auction (Auction), img_url (optional), current_user
+─────────────────────────────────────────────────────────────── #}
+
+<div class="db-card" data-auction-toggle="{{ auction.id }}">
+    <div class="db-card-img">
+        {% if img_url %}
+            <img src="{{ url_for('static', filename=img_url) }}" alt="{{ auction.title }}">
+        {% else %}
+            <span class="db-noimg">📦</span>
+        {% endif %}
+        <span class="db-badge-cat">Los #{{ auction.id }}</span>
+        {% if auction.is_active %}<span class="db-badge-live">● Aktiv</span>{% endif %}
+    </div>
+    <div class="db-card-body">
+        <h3 class="db-card-title">{{ auction.title }}</h3>
+
+        <div class="db-price-block">
+            <div class="db-price-lbl">Marktpreis</div>
+            <div class="db-price-market">{{ auction.starting_price|round(2) }} <small>€</small></div>
+        </div>
+
+        <div class="db-secret">🔒 Aktueller Preis und Teilnehmer — <strong>geheim</strong></div>
+
+        <div class="db-card-foot">
+            <a href="{{ url_for('main.seller_profile', seller_id=auction.seller.id) }}" onclick="event.stopPropagation();" style="color:var(--stone-600);">{{ auction.seller.username }}{% if auction.seller_confirmed %} ✓{% endif %}</a>
+            <span class="db-rating">
+                {% if auction.seller.review_count and auction.seller.review_count > 0 %}
+                    <span class="stars">★</span> {{ auction.seller.rating }}/5 <span class="count">({{ auction.seller.review_count }})</span>
+                {% else %}
+                    <span class="new">Neuer Verkäufer</span>
+                {% endif %}
+            </span>
+        </div>
+
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <span class="db-liability business">✦ Neu &amp; unbenutzt</span>
+            {% if auction.seller.seller_type == 'business' %}
+                <span class="db-liability business">Gewerblich · 14 Tage Widerruf</span>
+            {% else %}
+                <span class="db-liability private">Privatverkauf · kein Widerruf</span>
+            {% endif %}
+        </div>
+
+        <div class="db-card-entry">Eintritt: <strong>{{ (auction.starting_price * 0.01)|round(2) }} €</strong> · senkt den Preis</div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="db-modal modal fade" id="auctionModal-{{ auction.id }}" tabindex="-1" aria-hidden="true" data-stream-auction="{{ auction.id }}">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <div>
+          <div class="db-modal-cat">Los #{{ auction.id }} · {{ auction.get_status() }}</div>
+          <h2 class="modal-title">{{ auction.title }}</h2>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="db-live-status" id="live-status-{{ auction.id }}"></div>
+
+        {% if img_url %}
+          <img src="{{ url_for('static', filename=img_url) }}" class="db-modal-img" alt="{{ auction.title }}">
+        {% else %}
+          <div class="db-modal-noimg">📦</div>
+        {% endif %}
+
+        <!-- Prices -->
+        <div class="db-modal-prices">
+          <div class="db-price-cell">
+            <div class="db-price-cell-lbl">Marktpreis</div>
+            <div class="db-price-cell-val">{{ auction.starting_price|round(2) }} €</div>
+          </div>
+          <div class="db-price-cell hl">
+            <div class="db-price-cell-lbl">Aktueller Preis</div>
+            <div class="db-price-cell-val">🔒 geheim</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="db-modal-section">
+          <div class="db-modal-desc-lbl">Beschreibung</div>
+          <div class="db-modal-desc">{{ auction.description }}</div>
+          <div class="db-seller">Verkäufer: <a href="{{ url_for('main.seller_profile', seller_id=auction.seller.id) }}"><strong>{{ auction.seller.username }}</strong></a>
+            {% if auction.seller_confirmed %}<span class="db-liability business" style="margin-left:6px;">✓ Vom Verkäufer bestätigt</span>{% endif %}
+          </div>
+          <div style="margin-top:8px;">
+            <span class="db-rating">
+              {% if auction.seller.review_count and auction.seller.review_count > 0 %}
+                <span class="stars">★</span> {{ auction.seller.rating }}/5 <span class="count">({{ auction.seller.review_count }} Bewertungen)</span>
+              {% else %}
+                <span class="new">Noch keine Bewertungen</span>
+              {% endif %}
+            </span>
+          </div>
+          <div style="margin-top:8px;">
+            {% if auction.seller.seller_type == 'business' %}
+              <span class="db-liability business">Gewerblicher Verkäufer</span>
+              <div style="font-size:11px;color:var(--stone-500);margin-top:4px;">14 Tage Widerrufsrecht und gesetzliche Gewährleistung gelten.</div>
+            {% else %}
+              <span class="db-liability private">Privatverkauf</span>
+              <div style="font-size:11px;color:var(--stone-500);margin-top:4px;">Kein Widerrufsrecht, Gewährleistung ausgeschlossen (Verkauf von privat).</div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if auction.is_active and current_user.is_authenticated %}
+        <!-- Actions -->
+        <div class="db-actions">
+          <div class="db-action-cell">
+            <div class="db-action-title">Teilnehmen</div>
+            <div class="db-action-desc">Der Eintrittsbeitrag von {{ (auction.starting_price * 0.01)|round(2) }} € senkt den Preis um denselben Betrag. Danach können Sie den Preis einsehen.</div>
+            <button class="db-btn db-btn-dark db-btn-block db-participate-btn"
+                    data-auction-id="{{ auction.id }}"
+                    data-url="{{ url_for('user.participate_in_auction', auction_id=auction.id) }}">
+                Eintreten für {{ (auction.starting_price * 0.01)|round(2) }} €
+            </button>
+          </div>
+          <div class="db-action-cell">
+            <div class="db-action-title">Auktion abschließen</div>
+            <div class="db-action-desc">Zahlen Sie den aktuellen Preis und holen Sie die Ware ab. Geld liegt im Treuhand bis zur Empfangsbestätigung.</div>
+            <form method="POST" action="{{ url_for('user.close_auction', auction_id=auction.id) }}">
+                <button type="submit" class="db-btn db-btn-primary db-btn-block">Abschließen und kaufen</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Reveal -->
+        <div class="db-reveal">
+          <div class="db-reveal-lbl">Aktuellen Preis einsehen</div>
+
+          <div id="reveal-idle-{{ auction.id }}">
+            <div class="db-reveal-desc">Erfahren Sie den genauen aktuellen Preis und die Teilnehmerzahl für <strong>1 Kredit</strong>. Die Info wird <strong>5 Sekunden</strong> angezeigt. Teilnahme erforderlich.</div>
+            <button class="db-btn db-btn-primary db-btn-block db-reveal-btn"
+                    data-auction-id="{{ auction.id }}"
+                    data-url="{{ url_for('auction.view_auction', auction_id=auction.id) }}">
+                Einsehen für 1 Kredit
+            </button>
+          </div>
+
+          <div id="reveal-data-{{ auction.id }}" style="display:none;">
+            <div class="db-reveal-frozen">🔒 Einstiege eingefroren</div>
+            <div class="db-reveal-grid">
+              <div class="db-reveal-box">
+                <div class="db-reveal-val" id="reveal-price-{{ auction.id }}">—</div>
+                <div class="db-reveal-box-lbl">Aktueller Preis</div>
+              </div>
+              <div class="db-reveal-box">
+                <div class="db-reveal-val white" id="reveal-part-{{ auction.id }}">—</div>
+                <div class="db-reveal-box-lbl">Teilnehmer</div>
+              </div>
+            </div>
+            <div class="db-countdown">
+              <span class="db-countdown-num" id="countdown-{{ auction.id }}">5</span>
+              <span class="db-countdown-sec">Sek</span>
+            </div>
+            <div class="db-reveal-progress"><div class="db-reveal-progress-bar" id="progress-{{ auction.id }}"></div></div>
+          </div>
+
+          <div id="reveal-done-{{ auction.id }}" style="display:none;text-align:center;">
+            <div style="color:var(--stone-500);font-size:12px;margin-bottom:10px;">Zeit abgelaufen. Preis wieder verborgen.</div>
+            <button class="db-btn db-btn-primary db-btn-sm db-reveal-btn"
+                    data-auction-id="{{ auction.id }}"
+                    data-url="{{ url_for('auction.view_auction', auction_id=auction.id) }}">
+                Erneut einsehen für 1 Kredit
+            </button>
+          </div>
+
+          <div class="db-reveal-error" id="reveal-error-{{ auction.id }}" style="display:none;margin-top:10px;"></div>
+        </div>
+
+        {% elif auction.is_active and not current_user.is_authenticated %}
+        <div class="db-modal-section" style="text-align:center;">
+          <a href="{{ url_for('auth.login') }}" class="db-btn db-btn-primary">Anmelden, um teilzunehmen</a>
+        </div>
+
+        {% elif not auction.is_active and current_user.is_authenticated and auction.winner_id == current_user.id and not auction.is_confirmed %}
+        <div class="db-modal-section">
+          <div class="db-action-title">Sie haben diese Auktion gewonnen! 🎉</div>
+          <div class="db-action-desc">Bestätigen Sie den Erhalt der Ware, damit das Geld aus dem Treuhand an den Verkäufer geht.</div>
+          <form method="POST" action="{{ url_for('user.confirm_receive', auction_id=auction.id) }}">
+              <button type="submit" class="db-btn db-btn-primary db-btn-block">Erhalt bestätigen</button>
+          </form>
+        </div>
+        {% endif %}
+
+        <div class="db-modal-meta">
+          <span>🔒 Treuhand-Schutz</span>
+          <span>✅ Verifizierter Verkäufer</span>
+          <span style="margin-left:auto;cursor:pointer;color:var(--stone-400);"
+                onclick="reportAuction({{ auction.id }})" title="Rechtswidriges Inserat melden">🚩 Melden</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

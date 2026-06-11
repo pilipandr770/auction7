@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Käufer-Konto — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-page">
+    <div class="db-page-title">Käufer-Konto</div>
+    <div class="db-page-sub">{{ user.username }} · {{ user.email }}</div>
+
+    <div class="db-stat-row">
+        <div class="db-stat-card">
+            <div class="v">{{ user.service_credits or 0 }}</div>
+            <div class="l">Kredite für Einsicht</div>
+        </div>
+        <div class="db-stat-card">
+            <div class="v">{{ '💳' if user.default_payment_method else '—' }}</div>
+            <div class="l">Karte für Einstiege</div>
+        </div>
+        <div class="db-stat-card">
+            <div class="v">{{ auctions|length }}</div>
+            <div class="l">Verfügbare Auktionen</div>
+        </div>
+        <div class="db-stat-card">
+            <div class="v">{{ pending_confirmations|length }}</div>
+            <div class="l">Warten auf Bestätigung</div>
+        </div>
+    </div>
+
+    <!-- Zahlungen -->
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head"><h2 style="font-size:18px;">Zahlungen</h2></div>
+        <div class="db-panel-body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+                <div class="db-action-title">Kredite für Preis-Einsicht</div>
+                <div class="db-action-desc">1 Kredit = 1 Preis-Einsicht. Kaufen Sie im Paket — die Gebühr fällt nur einmal pro Kauf an.</div>
+                <form method="POST" action="{{ url_for('payments.buy_credits') }}" style="display:flex;gap:8px;">
+                    <select name="quantity" class="db-select" style="max-width:140px;">
+                        <option value="10">10 Kredite</option>
+                        <option value="50" selected>50 Kredite</option>
+                        <option value="100">100 Kredite</option>
+                    </select>
+                    <button type="submit" class="db-btn db-btn-primary">Kaufen</button>
+                </form>
+            </div>
+            <div>
+                <div class="db-action-title">Karte für Einstiege</div>
+                <div class="db-action-desc">Hinterlegen Sie eine Karte, um mit einem Klick teilzunehmen (Eintritt = Geld an Verkäufer via Treuhand).</div>
+                {% if user.default_payment_method %}
+                    <div class="db-joined-badge">💳 Karte hinterlegt</div>
+                    <a href="{{ url_for('payments.card_setup') }}" class="db-nav-link" style="display:inline-block;margin-top:8px;">Karte ändern</a>
+                {% else %}
+                    <a href="{{ url_for('payments.card_setup') }}" class="db-btn db-btn-dark">Karte hinterlegen</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if pending_confirmations %}
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head" style="background:var(--amber);color:var(--stone-900);">
+            <h2 style="font-size:16px;">🎉 Sie haben Auktion(en) gewonnen! Erhalt bestätigen</h2>
+        </div>
+        <div class="db-panel-body">
+            {% for auction in pending_confirmations %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--stone-100);">
+                <strong>{{ auction.title }}</strong>
+                <form method="POST" action="{{ url_for('user.confirm_receive', auction_id=auction.id) }}">
+                    <button type="submit" class="db-btn db-btn-primary db-btn-sm">Erhalt bestätigen</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if reviewable %}
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head"><h2 style="font-size:16px;">⭐ Verkäufer bewerten</h2></div>
+        <div class="db-panel-body">
+            {% for auction in reviewable %}
+            <form method="POST" action="{{ url_for('user.submit_review', auction_id=auction.id) }}"
+                  style="padding:12px 0;border-bottom:1px solid var(--stone-100);">
+                <div style="font-weight:700;margin-bottom:8px;">{{ auction.title }} — {{ auction.seller.username }}</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <select name="stars" class="db-select" style="max-width:130px;" required>
+                        <option value="5">★★★★★ (5)</option>
+                        <option value="4">★★★★ (4)</option>
+                        <option value="3">★★★ (3)</option>
+                        <option value="2">★★ (2)</option>
+                        <option value="1">★ (1)</option>
+                    </select>
+                    <input type="text" name="text" class="db-input" style="flex:1;min-width:200px;" placeholder="Kommentar (optional)" maxlength="1000">
+                    <button type="submit" class="db-btn db-btn-primary db-btn-sm">Bewerten</button>
+                </div>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="db-section-header"><h2 class="db-section-title">Verfügbare Auktionen</h2></div>
+    {% if auctions %}
+        <div class="db-auctions-grid">
+            {% for auction in auctions %}
+                {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else None %}
+                {% include 'auctions/auction_card.html' with context %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="db-empty">Keine verfügbaren Auktionen.</div>
+    {% endif %}
+
+    <div class="db-how-note" style="margin-top:28px;text-align:left;">
+        <strong>Clever mitspielen:</strong> Eintritt ≤ 1% des Preises. Sie können sofort zum Marktpreis kaufen (wenn Sie Erster sind)
+        oder auf eine Senkung warten. Nur ein Teilnehmer erhält die Ware — die anderen verlieren ihren Eintrittsbeitrag.
+        Alle Zahlungen liegen im Treuhand bis zur Empfangsbestätigung.
+    </div>
+
+    <!-- GDPR: Konto löschen -->
+    <div style="margin-top:32px;border:1px solid #fecaca;padding:18px;">
+        <div class="db-action-title" style="color:var(--red);">Konto löschen</div>
+        <div class="db-action-desc">Ihre persönlichen Daten werden anonymisiert (Recht auf Löschung, Art. 17 DSGVO). Transaktionsbelege bleiben aus steuerlichen Gründen erhalten. Nicht möglich bei offenen Käufen.</div>
+        <form method="POST" action="{{ url_for('user.delete_account') }}" onsubmit="return confirm('Konto wirklich unwiderruflich löschen?');">
+            <button type="submit" class="db-btn db-btn-sm" style="background:var(--red);color:#fff;">Konto endgültig löschen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

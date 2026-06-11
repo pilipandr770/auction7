@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dropbid-prototype",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "7890", "--directory", "C:\\Users\\ПК\\Downloads\\auction7"],
+      "port": 7890
+    }
+  ]
+}

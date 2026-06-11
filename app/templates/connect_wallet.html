@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Wallet verbinden — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap">
+    <div class="db-card-panel">
+        <div class="db-panel-head">
+            <div class="db-tag">DropBid</div>
+            <h2>Wallet verbinden</h2>
+        </div>
+        <div class="db-panel-body">
+            <p style="color:var(--stone-500);font-size:13px;margin-bottom:16px;">
+                Geben Sie die Wallet-Adresse manuell ein oder verbinden Sie über MetaMask.
+            </p>
+            <form method="POST" action="{{ url_for('user.connect_wallet') }}">
+                <div class="db-field">
+                    <label for="wallet_address">Wallet-Adresse</label>
+                    <input type="text" id="wallet_address" name="wallet_address" class="db-input" placeholder="0x..." required>
+                </div>
+                <button type="submit" class="db-btn db-btn-primary db-btn-block">Speichern</button>
+            </form>
+            <button onclick="connectWallet()" class="db-btn db-btn-ghost db-btn-block" style="margin-top:8px;">Über MetaMask verbinden 💳</button>
+            <div class="db-form-foot"><a href="/">← Zurück zur Startseite</a></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

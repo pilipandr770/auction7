@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Rolle wählen — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap">
+    <div class="db-card-panel">
+        <div class="db-panel-head">
+            <div class="db-tag">DropBid</div>
+            <h2>Kontotyp wählen</h2>
+        </div>
+        <div class="db-panel-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="db-field">{{ form.user_type.label }} {{ form.user_type(class="db-select") }}</div>
+                {{ form.submit(class="db-btn db-btn-primary db-btn-block") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

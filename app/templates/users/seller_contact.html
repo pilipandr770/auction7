@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Verkäufer-Kontakt — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap" style="max-width:480px;">
+    <div class="db-card-panel">
+        <div class="db-panel-head"><h2>Verkäuferdaten</h2></div>
+        <div class="db-panel-body">
+            <ul class="db-list">
+                <li><b>Name:</b> {{ seller.username }}</li>
+                <li><b>E-Mail:</b> {{ seller.email }}</li>
+                {% if seller.phone %}<li><b>Telefon:</b> {{ seller.phone }}</li>{% endif %}
+            </ul>
+            <p style="color:var(--stone-500);font-size:13px;margin-top:12px;">Kontaktieren Sie den Verkäufer, um die Ware zu erhalten.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

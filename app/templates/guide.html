@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Hilfe & So funktioniert's — DropBid{% endblock %}
+{% block content %}
+<div class="db-prose" style="max-width:880px;">
+    <h1>Hilfe & So funktioniert's</h1>
+    <p class="db-muted">Alles, was Käufer und Verkäufer über DropBid wissen müssen.</p>
+
+    <!-- Prinzip -->
+    <h4>Das Prinzip in Kürze</h4>
+    <p>DropBid ist eine <strong>Auktion mit fallendem Preis</strong> (holländische Auktion). Der Startpreis = Marktpreis. Jeder Eintritt eines Teilnehmers senkt den Preis. Der aktuelle Preis und die Teilnehmerzahl sind <strong>geheim</strong> — auch für den Verkäufer. So entsteht ein faires Spiel: Wer einsteigt, senkt den Preis und kann jederzeit zum aktuellen Stand kaufen.</p>
+
+    <div class="db-how-note" style="text-align:left;margin:16px 0;">
+        <strong>✦ Nur neue, unbenutzte Artikel.</strong> Da der Zustand online nicht überprüfbar ist, sind ausschließlich fabrikneue Waren erlaubt.
+    </div>
+
+    <!-- Für Käufer -->
+    <h4>Für Käufer</h4>
+    <ul>
+        <li><strong>Eintritt zahlen (1% des Startpreises):</strong> senkt den Preis um diesen Betrag. Direkt danach sehen Sie für <strong>5 Sekunden</strong> den aktuellen Preis und die Teilnehmerzahl. In diesen 5 Sekunden sind neue Einstiege eingefroren.</li>
+        <li><strong>Preis-Einsicht (1 Kredit):</strong> Sie können den aktuellen Preis jederzeit erneut für 1 Kredit ansehen. Kredite kaufen Sie im Paket — günstiger als Einzelgebühren.</li>
+        <li><strong>Warum ist der Preis geheim?</strong> Damit niemand (auch nicht der Verkäufer) den Preis verraten kann. Jeder entscheidet auf Basis eigener Einsicht — das hält die Auktion fair.</li>
+        <li><strong>Abschließen:</strong> Gefällt Ihnen der Preis, zahlen Sie den Restbetrag und die Ware gehört Ihnen.</li>
+        <li><strong>Treuhand:</strong> Ihr Geld liegt sicher im Treuhand und geht erst an den Verkäufer, wenn Sie den <strong>Erhalt bestätigen</strong>.</li>
+        <li><strong>Risiko:</strong> Nur ein Teilnehmer gewinnt. Die übrigen verlieren ihren Eintrittsbeitrag — daher bewusst mitbieten.</li>
+        <li><strong>Rückgabe:</strong> Bei <em>gewerblichen</em> Verkäufern gilt 14 Tage Widerrufsrecht. Bei <em>privaten</em> Verkäufern ist die Rückgabe ausgeschlossen.</li>
+    </ul>
+
+    <!-- Für Verkäufer -->
+    <h4>Für Verkäufer</h4>
+    <ul>
+        <li><strong>Fairer Startpreis:</strong> Geben Sie den aktuellen Marktpreis an (Link zur Preisquelle hilft bei der Prüfung). Überhöhte Preise verlangsamen den Verkauf.</li>
+        <li><strong>Sie erhalten immer den vollen Marktpreis:</strong> Summe aller Eintrittsbeiträge + Restbetrag des Gewinners = Startpreis. Sie verlieren nichts.</li>
+        <li><strong>Auch Sie sehen den aktuellen Preis nicht</strong> — so können Sie ihn niemandem verraten. Sie können aber öffentlich bestätigen, dass Ihr Artikel echt versteigert wird.</li>
+        <li><strong>Auszahlung:</strong> Erfolgt automatisch über Stripe, sobald der Käufer den Erhalt bestätigt. Dafür müssen Sie Auszahlungen aktivieren (Stripe-Onboarding).</li>
+        <li><strong>Steuerangaben (DAC7):</strong> Gesetzlich erforderlich. Ab 30 Verkäufen oder 2.000 € Jahresumsatz meldet die Plattform an das Finanzamt.</li>
+        <li><strong>Nur Neuware:</strong> Bestätigen Sie beim Erstellen, dass der Artikel neu und unbenutzt ist.</li>
+    </ul>
+
+    <!-- Vertrauen -->
+    <h4>Vertrauen & Sicherheit</h4>
+    <ul>
+        <li><strong>Bewertungen:</strong> Nur echte Käufer (nach bestätigtem Kauf) können bewerten — keine gefälschten Reviews.</li>
+        <li><strong>Treuhand-Schutz</strong> bei jeder Transaktion.</li>
+        <li><strong>Verkäufer melden / Inserat melden:</strong> Über „🚩 Melden" können rechtswidrige Inserate gemeldet werden.</li>
+        <li><strong>KI-Prüfung:</strong> Inserate und Bewertungen werden automatisch auf Zulässigkeit geprüft.</li>
+    </ul>
+
+    <p style="margin-top:24px;"><a href="/" class="db-btn db-btn-primary">Zu den Auktionen</a></p>
+</div>
+{% endblock %}

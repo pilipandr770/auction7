@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seller.username }} — Verkäuferprofil — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-page" style="max-width:900px;">
+
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head">
+            <div class="db-tag">Verkäuferprofil</div>
+            <h2>{{ seller.username }}</h2>
+        </div>
+        <div class="db-panel-body">
+            <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:center;">
+                <div>
+                    <div class="db-rating" style="font-size:18px;">
+                        {% if seller.review_count and seller.review_count > 0 %}
+                            <span class="stars">★</span> <strong>{{ seller.rating }}</strong>/5
+                            <span class="count">({{ seller.review_count }} Bewertungen)</span>
+                        {% else %}
+                            <span class="new">Noch keine Bewertungen</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="db-stat-card" style="padding:12px 18px;">
+                    <div class="v">{{ sold_count }}</div>
+                    <div class="l">Verkäufe abgeschlossen</div>
+                </div>
+                <div>
+                    {% if seller.seller_type == 'business' %}
+                        <span class="db-liability business">Gewerblicher Verkäufer · 14 Tage Widerruf</span>
+                    {% else %}
+                        <span class="db-liability private">Privatverkauf · kein Widerruf</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if seller.google_business_url %}
+            <div style="margin-top:16px;">
+                <a href="{{ seller.google_business_url }}" target="_blank" rel="noopener nofollow" class="db-btn db-btn-ghost db-btn-sm">
+                    🔗 Google-Unternehmensprofil ansehen
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Aktive Auktionen -->
+    {% if active_auctions %}
+    <div class="db-section-header"><h2 class="db-section-title">Aktive Auktionen</h2></div>
+    <div class="db-auctions-grid" style="margin-bottom:28px;">
+        {% for auction in active_auctions %}
+            {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else None %}
+            {% include 'auctions/auction_card.html' with context %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Bewertungen -->
+    <div class="db-section-header"><h2 class="db-section-title">Bewertungen</h2></div>
+    {% if reviews %}
+        <div class="db-card-panel">
+            <div class="db-panel-body">
+                {% for r in reviews %}
+                <div style="padding:14px 0;border-bottom:1px solid var(--stone-100);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="db-rating"><span class="stars">{{ '★' * r.stars }}{{ '☆' * (5 - r.stars) }}</span></span>
+                        <span style="font-size:11px;color:var(--stone-400);">{{ r.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    {% if r.text %}<div style="font-size:13px;color:var(--stone-700);margin-top:6px;">{{ r.text }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="db-empty">Dieser Verkäufer hat noch keine Bewertungen.</div>
+    {% endif %}
+
+    <div style="margin-top:20px;"><a href="/" class="db-nav-link">← Zur Startseite</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Fehler — DropBid{% endblock %}
+{% block content %}
+<div class="db-error">
+    <div class="db-error-code" style="color:var(--red);">!</div>
+    <h2>Ein Fehler ist aufgetreten</h2>
+    <p>{{ error }}</p>
+    <a href="/" class="db-btn db-btn-primary">Zur Startseite</a>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Verkäufer-Verifizierung — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap" style="max-width:540px;">
+    <div class="db-card-panel">
+        <div class="db-panel-head">
+            <div class="db-tag">DropBid</div>
+            <h2>Verkäufer-Verifizierung</h2>
+        </div>
+        <div class="db-panel-body">
+            <p style="color:var(--stone-500);font-size:13px;margin-bottom:20px;">
+                Für den Verkauf auf der Plattform ist eine Verifizierung gemäß EU-Vorgaben erforderlich.
+                Füllen Sie die Unternehmensdaten aus und laden Sie einen Nachweis hoch.
+            </p>
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="db-field">{{ form.company_name.label }} {{ form.company_name(class="db-input") }}</div>
+                <div class="db-field">{{ form.registration_number.label }} {{ form.registration_number(class="db-input") }}</div>
+                <div class="db-field">{{ form.country.label }} {{ form.country(class="db-input") }}</div>
+                <div class="db-field">{{ form.company_address.label }} {{ form.company_address(class="db-input") }}</div>
+                <div class="db-field">{{ form.tax_id.label }} {{ form.tax_id(class="db-input") }}</div>
+                <div class="db-field">{{ form.representative_name.label }} {{ form.representative_name(class="db-input") }}</div>
+                <div class="db-field">{{ form.representative_email.label }} {{ form.representative_email(class="db-input") }}</div>
+                <div class="db-field">{{ form.document.label }} {{ form.document(class="db-input") }}</div>
+                {{ form.submit(class="db-btn db-btn-primary db-btn-block") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

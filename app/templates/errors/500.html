@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Serverfehler — DropBid{% endblock %}
+{% block content %}
+<div class="db-error">
+    <div class="db-error-code" style="color:var(--red);">500</div>
+    <h2>Interner Serverfehler</h2>
+    <p>Ein unerwarteter Fehler ist aufgetreten. Wir arbeiten bereits an der Behebung.</p>
+    <a href="/" class="db-btn db-btn-primary">Zur Startseite</a>
+</div>
+{% endblock %}

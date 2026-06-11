@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Käufer-Registrierung — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap">
+    <div class="db-card-panel">
+        <div class="db-panel-head">
+            <div class="db-tag">DropBid</div>
+            <h2>Käufer-Registrierung</h2>
+        </div>
+        <div class="db-panel-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="db-field">{{ form.username.label }} {{ form.username(class="db-input") }}</div>
+                <div class="db-field">{{ form.email.label }} {{ form.email(class="db-input") }}</div>
+                <div class="db-field">{{ form.password.label }} {{ form.password(class="db-input") }}</div>
+                <div class="db-field">{{ form.confirm_password.label }} {{ form.confirm_password(class="db-input") }}</div>
+                {{ form.submit(class="db-btn db-btn-primary db-btn-block") }}
+            </form>
+            <div class="db-form-foot">
+                Bereits registriert? <a href="{{ url_for('auth.login') }}">Anmelden</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

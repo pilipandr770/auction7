@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Karte hinterlegen — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap">
+    <div class="db-card-panel">
+        <div class="db-panel-head">
+            <div class="db-tag">DropBid</div>
+            <h2>Karte hinterlegen</h2>
+        </div>
+        <div class="db-panel-body">
+            <p style="color:var(--stone-500);font-size:13px;margin-bottom:16px;">
+                Die Karte wird für schnelle Auktions-Einstiege gespeichert (ohne wiederholte Bestätigung).
+                Beim ersten Mal kann 3D-Secure nötig sein.
+            </p>
+            <div id="card-element" style="border:1px solid var(--stone-300);padding:12px;margin-bottom:12px;"></div>
+            <div id="card-error" class="db-alert db-alert-error" style="display:none;margin-bottom:12px;"></div>
+            <button id="save-card-btn" class="db-btn db-btn-primary db-btn-block">Karte speichern</button>
+            <div class="db-form-foot"><a href="{{ url_for('user.buyer_dashboard', email=current_user.email) }}">← Zurück</a></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+const stripe = Stripe("{{ publishable_key }}");
+const elements = stripe.elements();
+const card = elements.create('card');
+card.mount('#card-element');
+
+const btn = document.getElementById('save-card-btn');
+const errBox = document.getElementById('card-error');
+
+btn.addEventListener('click', async () => {
+    btn.disabled = true; btn.textContent = '⏳ Wird verarbeitet...';
+    errBox.style.display = 'none';
+    const { setupIntent, error } = await stripe.confirmCardSetup("{{ client_secret }}", {
+        payment_method: { card: card }
+    });
+    if (error) {
+        errBox.textContent = error.message; errBox.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Karte speichern';
+        return;
+    }
+    // Backend über gespeicherte payment_method informieren
+    await fetch("{{ url_for('payments.card_saved') }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_method: setupIntent.payment_method })
+    });
+    window.location.href = "{{ url_for('user.buyer_dashboard', email=current_user.email) }}";
+});
+</script>
+{% endblock %}

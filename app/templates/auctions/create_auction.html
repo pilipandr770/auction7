@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Auktion erstellen — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap" style="max-width:520px;">
+    <div class="db-card-panel">
+        <div class="db-panel-head">
+            <div class="db-tag">DropBid</div>
+            <h2>Auktion erstellen</h2>
+        </div>
+        <div class="db-panel-body">
+            <form id="create-auction-form" enctype="multipart/form-data" method="POST" action="{{ url_for('auction.create_auction') }}">
+                <div class="db-field">
+                    <label for="title">Artikelname</label>
+                    <input type="text" id="title" name="title" class="db-input" placeholder="Name eingeben" required>
+                </div>
+                <div class="db-field">
+                    <label for="description">Beschreibung</label>
+                    <textarea id="description" name="description" class="db-textarea" rows="4" placeholder="Zustand, Ausstattung, Garantie..." required></textarea>
+                </div>
+                <div class="db-field">
+                    <label for="starting_price">Start- (Markt-)preis, €</label>
+                    <input type="number" step="0.01" min="1" max="1000000" id="starting_price" name="starting_price" class="db-input" placeholder="1000" required>
+                    <small style="color:var(--stone-400);font-size:11px;">Aktueller Marktpreis (1–1 000 000 €). Überhöhte Preise verlangsamen den Verkauf.</small>
+                </div>
+                <div class="db-field">
+                    <label for="market_reference">Link zum Marktpreis (optional)</label>
+                    <input type="url" id="market_reference" name="market_reference" class="db-input" placeholder="https://... (Check24, idealo usw.)">
+                </div>
+                <div class="db-field">
+                    <label for="photos">Produktfotos</label>
+                    <input type="file" id="photos" name="photos" class="db-input" multiple accept="image/*">
+                    <small style="color:var(--stone-400);font-size:11px;">Mehrere Fotos möglich.</small>
+                </div>
+                <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--stone-600);margin-bottom:14px;">
+                    <input type="checkbox" name="condition_new" required style="margin-top:2px;">
+                    <span>Ich bestätige, dass der Artikel <strong>neu und unbenutzt</strong> ist. Gebrauchte Artikel sind nicht erlaubt.</span>
+                </label>
+                <button type="submit" class="db-btn db-btn-primary db-btn-block">Auktion erstellen</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

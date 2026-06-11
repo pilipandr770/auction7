@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Verkäufer-Konto — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-page">
+    <div class="db-page-title">Verkäufer-Konto</div>
+    <div class="db-page-sub">{{ user.username }} · {{ user.email }}</div>
+
+    <div class="db-stat-row">
+        <div class="db-stat-card">
+            <div class="v">{{ balance_from_completed|round(2) }} €</div>
+            <div class="l">Verdient (abgeschlossen)</div>
+        </div>
+        <div class="db-stat-card">
+            <div class="v">{{ auctions|length }}</div>
+            <div class="l">Abgeschlossene Auktionen</div>
+        </div>
+        <div class="db-stat-card">
+            <div class="v">{{ '✅' if user.stripe_payouts_enabled else '⚠️' }}</div>
+            <div class="l">Stripe-Auszahlungen</div>
+        </div>
+    </div>
+
+    <!-- Stripe Connect payouts -->
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head"><h2 style="font-size:18px;">Auszahlungen erhalten</h2></div>
+        <div class="db-panel-body">
+            {% if user.stripe_payouts_enabled %}
+                <div class="db-alert db-alert-success">✅ Auszahlungen aktiviert. Erlöse für verkaufte Lose gehen auf Ihr Konto.</div>
+            {% else %}
+                <p style="color:var(--stone-500);font-size:13px;margin-bottom:12px;">
+                    Um Erlöse für verkaufte Lose zu erhalten, aktivieren Sie Auszahlungen über Stripe (Verifizierung und Bankdaten).
+                </p>
+                <form method="POST" action="{{ url_for('payments.connect_onboard') }}">
+                    <button type="submit" class="db-btn db-btn-primary">Auszahlungen über Stripe aktivieren</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DAC7 Steuerangaben -->
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head"><h2 style="font-size:18px;">Steuerangaben (DAC7)</h2></div>
+        <div class="db-panel-body">
+            {% if user.dac7_complete %}
+                <div class="db-alert db-alert-success" style="margin-bottom:12px;">✅ Steuerangaben vollständig.</div>
+            {% else %}
+                <p style="color:var(--stone-500);font-size:13px;margin-bottom:12px;">
+                    Als EU-Plattform sind wir gesetzlich verpflichtet (DAC7/PStTG), Steuerdaten von Verkäufern zu erheben und ab 30 Verkäufen oder 2.000 € Jahresumsatz an das Finanzamt zu melden.
+                </p>
+            {% endif %}
+            <form method="POST" action="{{ url_for('user.save_tax_info') }}">
+                <div class="db-field">
+                    <label for="seller_type">Verkäufertyp</label>
+                    <select id="seller_type" name="seller_type" class="db-select">
+                        <option value="private" {{ 'selected' if user.seller_type == 'private' else '' }}>Privatperson</option>
+                        <option value="business" {{ 'selected' if user.seller_type == 'business' else '' }}>Unternehmen</option>
+                    </select>
+                </div>
+                <div class="db-field">
+                    <label for="tax_id">Steuer-ID / USt-IdNr</label>
+                    <input type="text" id="tax_id" name="tax_id" class="db-input" value="{{ user.tax_id or '' }}" placeholder="z.B. DE123456789">
+                </div>
+                <div class="db-field">
+                    <label for="address">Adresse</label>
+                    <input type="text" id="address" name="address" class="db-input" value="{{ user.address or '' }}" placeholder="Straße, PLZ, Ort">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div class="db-field">
+                        <label for="country">Land (ISO-2)</label>
+                        <input type="text" id="country" name="country" class="db-input" maxlength="2" value="{{ user.country or 'DE' }}" placeholder="DE">
+                    </div>
+                    <div class="db-field">
+                        <label for="date_of_birth">Geburtsdatum (nur Privatperson)</label>
+                        <input type="date" id="date_of_birth" name="date_of_birth" class="db-input" value="{{ user.date_of_birth or '' }}">
+                    </div>
+                </div>
+                <button type="submit" class="db-btn db-btn-primary db-btn-block">Steuerangaben speichern</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create auction -->
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head"><h2 style="font-size:18px;">Neue Auktion erstellen</h2></div>
+        <div class="db-panel-body">
+            <form action="{{ url_for('auction.create_auction') }}" method="POST" enctype="multipart/form-data">
+                <div class="db-field">
+                    <label for="title">Artikelname</label>
+                    <input type="text" id="title" name="title" class="db-input" placeholder="z.B. Apple iPhone 15 Pro" required>
+                </div>
+                <div class="db-field">
+                    <label for="description">Beschreibung</label>
+                    <textarea id="description" name="description" class="db-textarea" placeholder="Zustand, Ausstattung, Garantie..." required></textarea>
+                </div>
+                <div class="db-field">
+                    <label for="starting_price">Start- (Markt-)preis, €</label>
+                    <input type="number" step="0.01" min="1" max="1000000" id="starting_price" name="starting_price" class="db-input" placeholder="1000" required>
+                    <small style="color:var(--stone-400);font-size:11px;">Geben Sie den aktuellen Marktpreis an (1–1 000 000 €). Überhöhte Preise verlangsamen den Verkauf.</small>
+                </div>
+                <div class="db-field">
+                    <label for="market_reference">Link zum Marktpreis (optional)</label>
+                    <input type="url" id="market_reference" name="market_reference" class="db-input" placeholder="https://... (Check24, idealo usw.)">
+                    <small style="color:var(--stone-400);font-size:11px;">Zur Preisprüfung durch den Administrator.</small>
+                </div>
+                <div class="db-field">
+                    <label for="photos">Produktfotos</label>
+                    <input type="file" id="photos" name="photos" class="db-input" multiple accept="image/*">
+                </div>
+                <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--stone-600);margin-bottom:14px;">
+                    <input type="checkbox" name="condition_new" required style="margin-top:2px;">
+                    <span>Ich bestätige, dass der Artikel <strong>neu und unbenutzt</strong> ist. Gebrauchte Artikel sind auf DropBid nicht erlaubt (Zustand ist online nicht prüfbar).</span>
+                </label>
+                <button type="submit" class="db-btn db-btn-primary db-btn-block">Auktion erstellen</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Öffentliches Profil -->
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head"><h2 style="font-size:18px;">Öffentliches Profil</h2></div>
+        <div class="db-panel-body">
+            <form method="POST" action="{{ url_for('user.save_seller_profile') }}">
+                <div class="db-field">
+                    <label for="google_business_url">Google-Unternehmensprofil (Link)</label>
+                    <input type="url" id="google_business_url" name="google_business_url" class="db-input" value="{{ user.google_business_url or '' }}" placeholder="https://g.page/...">
+                    <small style="color:var(--stone-400);font-size:11px;">Wird auf Ihrer öffentlichen Profilseite angezeigt — schafft Vertrauen.</small>
+                </div>
+                <button type="submit" class="db-btn db-btn-primary db-btn-sm">Speichern</button>
+                <a href="{{ url_for('main.seller_profile', seller_id=user.id) }}" target="_blank" class="db-nav-link" style="margin-left:10px;">Mein öffentliches Profil ansehen →</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Aktive Auktionen (ohne Preis — geheim auch für den Verkäufer) -->
+    <div class="db-card-panel" style="margin-bottom:28px;">
+        <div class="db-panel-head"><h2 style="font-size:18px;">Meine aktiven Auktionen</h2></div>
+        <div class="db-panel-body">
+            <div class="db-alert db-alert-info" style="margin-bottom:14px;">
+                🔒 Aktueller Preis und Teilnehmerzahl sind <strong>auch für Sie geheim</strong> — so bleibt die Auktion fair. Sie können die Echtheit Ihres Inserats öffentlich bestätigen.
+            </div>
+            {% if active_auctions %}
+                {% for a in active_auctions %}
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--stone-100);">
+                    <strong>{{ a.title }}</strong>
+                    {% if a.seller_confirmed %}
+                        <span class="db-liability business">✓ Echtheit bestätigt</span>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('user.confirm_listing', auction_id=a.id) }}">
+                            <button type="submit" class="db-btn db-btn-dark db-btn-sm">Echtheit bestätigen</button>
+                        </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="color:var(--stone-400);font-size:13px;">Keine aktiven Auktionen.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- My auctions -->
+    <div class="db-section-header"><h2 class="db-section-title">Abgeschlossene Auktionen</h2></div>
+    {% if auctions %}
+        <table class="db-table">
+            <thead>
+                <tr><th>Artikel</th><th>Startpreis</th><th>Status</th><th>Verdient</th><th>Teilnehmer</th></tr>
+            </thead>
+            <tbody>
+                {% for auction in auctions %}
+                <tr>
+                    <td><strong>{{ auction.title }}</strong></td>
+                    <td>{{ auction.starting_price }} €</td>
+                    <td>{{ auction.status }}</td>
+                    <td>{{ auction.total_earnings|round(2) }} €</td>
+                    <td>{{ auction.total_participants }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="db-empty">Sie haben noch keine Auktionen erstellt.</div>
+    {% endif %}
+
+    <div class="db-how-note" style="margin-top:28px;text-align:left;">
+        <strong>So wählen Sie den Preis:</strong> Setzen Sie einen fairen Marktpreis — überhöhte Preise verlangsamen den Verkauf.
+        Eintrittsbeitrag = 1% des Preises. Sie erhalten <strong>alle Eintrittsbeiträge + Endpreis</strong> = den vollen Marktwert.
+        Der Verkäufer verliert nichts.
+    </div>
+
+    <!-- GDPR: Konto löschen -->
+    <div style="margin-top:32px;border:1px solid #fecaca;padding:18px;">
+        <div class="db-action-title" style="color:var(--red);">Konto löschen</div>
+        <div class="db-action-desc">Ihre persönlichen Daten werden anonymisiert (Recht auf Löschung, Art. 17 DSGVO). Transaktionsbelege bleiben aus steuerlichen Gründen erhalten. Nicht möglich bei aktiven Auktionen.</div>
+        <form method="POST" action="{{ url_for('user.delete_account') }}" onsubmit="return confirm('Konto wirklich unwiderruflich löschen?');">
+            <button type="submit" class="db-btn db-btn-sm" style="background:var(--red);color:#fff;">Konto endgültig löschen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

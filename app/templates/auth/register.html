@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Registrieren — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap">
+    <div class="db-card-panel">
+        <div class="db-panel-head">
+            <div class="db-tag">DropBid</div>
+            <h2>Konto erstellen</h2>
+        </div>
+        <div class="db-panel-body">
+            <form method="POST" action="{{ url_for('auth.register') }}">
+                <div class="db-field">
+                    <label for="username">Benutzername</label>
+                    <input type="text" id="username" name="username" class="db-input" placeholder="Ihr Name" required>
+                </div>
+                <div class="db-field">
+                    <label for="email">E-Mail</label>
+                    <input type="email" id="email" name="email" class="db-input" placeholder="du@beispiel.de" required>
+                </div>
+                <div class="db-field">
+                    <label for="password">Passwort</label>
+                    <input type="password" id="password" name="password" class="db-input" placeholder="••••••••" required>
+                </div>
+                <div class="db-field">
+                    <label>Kontotyp</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <label class="db-role-opt" style="display:flex;align-items:center;gap:8px;border:1px solid var(--stone-300);padding:10px;cursor:pointer;font-size:13px;">
+                            <input type="radio" name="user_type" value="buyer" required> Käufer
+                        </label>
+                        <label class="db-role-opt" style="display:flex;align-items:center;gap:8px;border:1px solid var(--stone-300);padding:10px;cursor:pointer;font-size:13px;">
+                            <input type="radio" name="user_type" value="seller" required> Verkäufer
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="db-btn db-btn-primary db-btn-block">Registrieren</button>
+            </form>
+            <div class="db-form-foot">
+                Bereits registriert? <a href="{{ url_for('auth.login') }}">Anmelden</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

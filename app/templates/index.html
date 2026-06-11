@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}DropBid — Der Preis fällt. Du entscheidest, wann du kaufst.{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="db-hero">
+    <div class="db-hero-inner">
+        <div>
+            <div class="db-tag">Dutch Auction Platform</div>
+            <h1>Der Preis fällt.<br><em>Du entscheidest — wann du kaufst.</em></h1>
+            <p>Jeder Teilnehmer senkt den Preis mit seinem Beitrag. Je mehr Leute mitmachen, desto günstiger die Ware. Schließe die Auktion ab, wenn es sich lohnt — oder warte weiter.</p>
+            <div class="db-hero-btns">
+                <a href="#auctions" class="db-btn db-btn-primary">Lose ansehen ↓</a>
+                <a href="#how" class="db-btn db-btn-ghost-light">So funktioniert's</a>
+            </div>
+        </div>
+        <div class="db-stats-grid">
+            <div class="db-stat"><div class="db-stat-val">{{ auctions|length }}</div><div class="db-stat-lbl">Aktive Auktionen</div></div>
+            <div class="db-stat"><div class="db-stat-val">bis 100%</div><div class="db-stat-lbl">Möglicher Rabatt</div></div>
+            <div class="db-stat"><div class="db-stat-val">5 Sek</div><div class="db-stat-lbl">Preis-Einsicht-Fenster</div></div>
+            <div class="db-stat"><div class="db-stat-val">🔒</div><div class="db-stat-lbl">Treuhand-Schutz</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section class="db-how" id="how">
+    <div class="db-how-inner">
+        <div class="db-section-tag">So funktioniert's</div>
+        <div class="db-how-steps">
+            <div class="db-how-step">
+                <div class="db-how-num">01</div>
+                <div class="db-how-title">Eintrittsticket kaufen</div>
+                <div class="db-how-desc">Zahle 1% des Startpreises. Der Lospreis sinkt um diesen Betrag. Für 5 Sekunden werden der genaue Preis und die Teilnehmerzahl sichtbar.</div>
+            </div>
+            <div class="db-how-step">
+                <div class="db-how-num">02</div>
+                <div class="db-how-title">Beobachten oder warten</div>
+                <div class="db-how-desc">Sieh den Preis jederzeit für 1 € ein. Je mehr Teilnehmer einsteigen, desto niedriger der Preis. Du entscheidest, wann du aufhörst.</div>
+            </div>
+            <div class="db-how-step">
+                <div class="db-how-num">03</div>
+                <div class="db-how-title">Abschließen und abholen</div>
+                <div class="db-how-desc">Bereit? Zahle den aktuellen Preis und die Ware gehört dir. Das Geld liegt im Treuhand — der Verkäufer erhält es nach deiner Empfangsbestätigung.</div>
+            </div>
+        </div>
+        <div class="db-how-note"><strong>Der Verkäufer erhält immer den Marktpreis.</strong> Summe aller Eintrittsbeiträge + Restbetrag = Startpreis. Ohne Risiko.</div>
+        <div class="db-how-note" style="margin-top:10px;"><strong>✦ Nur neue, unbenutzte Artikel.</strong> Da der Zustand online nicht prüfbar ist, sind auf DropBid ausschließlich fabrikneue Waren erlaubt.</div>
+    </div>
+</section>
+
+<!-- Auctions -->
+<section class="db-section" id="auctions">
+    <div class="db-container">
+        <div class="db-section-header">
+            <h2 class="db-section-title">Aktive Auktionen</h2>
+        </div>
+
+        {% if auctions %}
+            <div class="db-auctions-grid">
+                {% for auction in auctions %}
+                    {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else None %}
+                    {% include 'auctions/auction_card.html' with context %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="db-empty">Derzeit keine aktiven Auktionen. Schauen Sie später vorbei!</div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Auktionen — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-section">
+    <div class="db-container">
+        <div class="db-section-header"><h2 class="db-section-title">Alle Auktionen</h2></div>
+        {% if auctions %}
+            <div class="db-auctions-grid">
+                {% for auction in auctions %}
+                    {% set img_url = auction.photos[0] if auction.photos and auction.photos[0] else None %}
+                    {% include 'auctions/auction_card.html' with context %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="db-empty">Derzeit keine aktiven Auktionen.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

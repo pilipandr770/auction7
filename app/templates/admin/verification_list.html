@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Verifizierungsanträge — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-page">
+    <div class="db-page-title">Verifizierungsanträge</div>
+    <div class="db-page-sub">Verkäufer-Prüfung</div>
+
+    {% if verifications %}
+    <table class="db-table">
+        <thead>
+            <tr><th>ID</th><th>Unternehmen</th><th>Status</th><th>Aktion</th></tr>
+        </thead>
+        <tbody>
+            {% for v in verifications %}
+            <tr>
+                <td>{{ v.id }}</td>
+                <td><strong>{{ v.company_name }}</strong></td>
+                <td>{{ v.status }}</td>
+                <td>
+                    {% if v.status == "pending" %}
+                        <a href="{{ url_for('verification_admin.approve_verification', verification_id=v.id) }}">✅ Genehmigen</a> ·
+                        <a href="{{ url_for('verification_admin.reject_verification', verification_id=v.id) }}">❌ Ablehnen</a>
+                    {% else %} — {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="db-empty">Keine Verifizierungsanträge.</div>
+    {% endif %}
+</div>
+{% endblock %}

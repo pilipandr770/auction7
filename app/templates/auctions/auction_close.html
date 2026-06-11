@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Auktion beendet — DropBid{% endblock %}
+
+{% block content %}
+<div class="db-auth-wrap" style="max-width:480px;">
+    <div class="db-card-panel">
+        <div class="db-panel-head" style="background:var(--amber);color:var(--stone-900);">
+            <h2>🎉 Auktion beendet</h2>
+        </div>
+        <div class="db-panel-body">
+            <p style="color:var(--stone-500);font-size:13px;margin-bottom:16px;">Danke für die Teilnahme! Details der beendeten Auktion:</p>
+            <ul class="db-list">
+                <li><b>Titel:</b> {{ auction.title }}</li>
+                <li><b>Gewinner:</b> {{ auction.winner_name }}</li>
+                <li><b>Abschlusspreis:</b> {{ auction.final_price }} €</li>
+                <li><b>Enddatum:</b> {{ auction.close_date }}</li>
+            </ul>
+            <div style="display:flex;gap:8px;margin-top:20px;">
+                <a href="/" class="db-btn db-btn-ghost db-btn-block">Zur Startseite</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
