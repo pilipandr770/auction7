@@ -3,7 +3,7 @@ from flask import (Blueprint, redirect, url_for, flash, request, jsonify,
                    render_template, current_app)
 from flask_login import login_required, current_user
 
-from app import db
+from app import db, limiter
 from app.models.user import User
 from app.models.transaction import Transaction
 from app.payments import stripe_service as ss
@@ -63,6 +63,7 @@ def connect_return():
 
 @payments_bp.route('/credits/buy', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def buy_credits():
     if not ss.is_configured():
         flash("Zahlungen sind noch nicht konfiguriert.", "error")

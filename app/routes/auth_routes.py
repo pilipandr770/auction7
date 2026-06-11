@@ -1,11 +1,12 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user
 from app.models.user import User
-from app import db
+from app import db, limiter
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute; 50 per hour")
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -54,15 +55,12 @@ def register():
             flash("Ein Benutzer mit dieser E-Mail existiert bereits", 'error')
             return redirect(url_for('auth.register'))
 
-        # Перевірка типу користувача
-        if user_type not in ['buyer', 'seller', 'admin']:
+        # Адмін-акаунти створюються тільки через seed/CLI, не через публічну реєстрацію
+        if user_type not in ['buyer', 'seller']:
             flash("Ungültiger Benutzertyp", 'error')
             return redirect(url_for('auth.register'))
 
-        # Створення нового користувача
         user = User(username=username, email=email, password=password, user_type=user_type)
-        if user_type == "admin":
-            user.is_admin = True  # Позначаємо адміністратора
         db.session.add(user)
         db.session.commit()
 

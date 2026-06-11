@@ -2,15 +2,17 @@ from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 import os
 
-# Завантажуємо .env до того, як create_app читає конфіг
 load_dotenv()
 
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
 
 
 def register_error_handlers(app):
@@ -32,7 +34,13 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///auction.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'change-me-in-production')
+    secret_key = os.getenv('SECRET_KEY', '')
+    if not secret_key or secret_key == 'change-me-in-production':
+        raise RuntimeError(
+            "SECRET_KEY ist nicht gesetzt oder unsicher. "
+            "Bitte setzen Sie SECRET_KEY in der .env-Datei auf einen zufälligen Wert."
+        )
+    app.config['SECRET_KEY'] = secret_key
     app.config['SESSION_PERMANENT'] = False
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
@@ -55,6 +63,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    limiter.init_app(app)
     login_manager.login_view = 'auth.login'
 
     from app.models.user import User

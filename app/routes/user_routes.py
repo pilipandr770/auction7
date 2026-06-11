@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify, redirect, url_for, flash, render_template
+from flask import Blueprint, request, jsonify, redirect, url_for, flash, render_template, current_app
 from flask_login import login_required, current_user, logout_user
 import secrets
-from app import db
+from app import db, limiter
 from app.models.user import User
 from app.models.auction import Auction
 from app.models.auction_participant import AuctionParticipant
@@ -63,23 +63,9 @@ def notify_auction_end(auction, winner):
 @user_bp.route('/add_balance', methods=['POST'])
 @login_required
 def add_balance():
-    data = request.get_json()
-    if not data or 'amount' not in data:
-        return jsonify({"error": "Ungültiges Anfrageformat"}), 400
-
-    try:
-        amount = float(data['amount'])
-        if amount <= 0:
-            return jsonify({"error": "Betrag muss größer als 0 sein"}), 400
-
-        current_user.balance += amount
-        db.session.commit()
-        return jsonify({"message": "Guthaben erfolgreich aufgeladen!", "new_balance": current_user.balance}), 200
-    except ValueError:
-        return jsonify({"error": "Ungültiger Betrag"}), 400
-    except Exception as e:
-        print(f"Fehler: {e}")
-        return jsonify({"error": "Guthaben konnte nicht aufgeladen werden."}), 500
+    # Баланс поповнюється тільки через Stripe (payments/credits/buy).
+    # Прямий endpoint для довільного поповнення видалено з міркувань безпеки.
+    return jsonify({"error": "Nicht verfügbar. Bitte Guthaben über die Zahlungsseite aufladen."}), 403
 
 @user_bp.route('/buyer/<string:email>', methods=['GET', 'POST'])
 @login_required
@@ -188,6 +174,7 @@ def seller_dashboard(email):
 
 @user_bp.route('/participate/<int:auction_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def participate_in_auction(auction_id):
     auction = Auction.query.get(auction_id)
     if not auction or not auction.is_active:
@@ -203,10 +190,15 @@ def participate_in_auction(auction_id):
 
     entry_price = auction.starting_price * 0.01
 
-    participant = AuctionParticipant.query.filter_by(auction_id=auction.id, user_id=current_user.id).first()
+    # with_for_update() блокує рядок на час транзакції → захист від race condition
+    participant = AuctionParticipant.query.filter_by(
+        auction_id=auction.id, user_id=current_user.id
+    ).with_for_update().first()
     if not participant:
         participant = AuctionParticipant(auction_id=auction.id, user_id=current_user.id)
         db.session.add(participant)
+    elif participant.has_paid_entry:
+        return jsonify({"error": "Sie haben bereits an dieser Auktion teilgenommen."}), 400
 
     try:
         if ss.is_configured():
@@ -301,11 +293,12 @@ def close_auction(auction_id):
 
         auction.close_auction(winner_id=current_user.id)
         notify_auction_end(auction, current_user)
-        flash("Auktion erfolgreich abgeschlossen! Bestätigen Sie den Erhalt, damit der Verkäufer ausgezahlt wird.", "success")
+        flash("Auktion erfolgreich abgeschlossen! Sie erhalten eine E-Mail mit den Kontaktdaten des Verkäufers. "
+              "Bestätigen Sie den Erhalt, damit der Verkäufer ausgezahlt wird.", "success")
     except Exception as e:
         db.session.rollback()
-        print(f"[ERROR] Помилка закриття аукціону: {e}")
-        flash(f"Auktion konnte nicht abgeschlossen werden. {e}", "error")
+        current_app.logger.error(f"Auktion schließen Fehler (auction_id={auction_id}): {e}")
+        flash("Auktion konnte nicht abgeschlossen werden. Bitte später erneut versuchen.", "error")
     return redirect(url_for('user.buyer_dashboard', email=current_user.email))
 
 @user_bp.route('/confirm_receive/<int:auction_id>', methods=['POST'])
@@ -471,6 +464,18 @@ def delete_account():
                         else url_for('user.seller_dashboard', email=user.email))
 
     try:
+        # Відкликати Stripe ресурси до анонімізації
+        if ss.is_configured():
+            try:
+                import stripe as _stripe
+                _stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+                if user.default_payment_method:
+                    _stripe.PaymentMethod.detach(user.default_payment_method)
+                if user.stripe_customer_id:
+                    _stripe.Customer.delete(user.stripe_customer_id)
+            except Exception as stripe_err:
+                current_app.logger.warning(f"Stripe cleanup on delete: {stripe_err}")
+
         # Anonymisierung der personenbezogenen Daten (PII)
         uid = user.id
         user.username = f"geloeschter_nutzer_{uid}"

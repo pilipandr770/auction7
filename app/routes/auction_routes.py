@@ -2,9 +2,10 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
+import uuid
 import json
 import time
-from app import db
+from app import db, limiter
 from app.models.auction import Auction
 from app.models.user import User
 from app.models.auction_participant import AuctionParticipant
@@ -34,6 +35,7 @@ def report_auction(auction_id):
 
 
 @auction_bp.route('/<int:auction_id>/stream')
+@login_required
 def auction_stream(auction_id):
     """Server-Sent Events: транслює ПУБЛІЧНИЙ стан аукціону (статус, заморозка).
     Поточна ціна та кількість учасників НЕ транслюються — це таємниця."""
@@ -65,13 +67,17 @@ def auction_stream(auction_id):
                     headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_MIMETYPES = {'image/png', 'image/jpeg', 'image/gif'}
 UPLOAD_FOLDER = os.path.join('app', 'static', 'images', 'uploads')
 
-# Створення папки для завантаження фотографій, якщо вона не існує
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+def allowed_file(file):
+    """Перевіряє розширення І MIME-тип файлу."""
+    filename = file.filename
+    ext_ok = '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    mime_ok = file.mimetype in ALLOWED_MIMETYPES
+    return ext_ok and mime_ok
 
 @auction_bp.route('/create', methods=['POST'])
 @login_required
@@ -84,6 +90,9 @@ def create_auction():
     description = request.form.get('description')
     starting_price = request.form.get('starting_price')
     market_reference = request.form.get('market_reference') or None
+    if market_reference and not (market_reference.startswith('http://') or market_reference.startswith('https://')):
+        flash("Marktpreis-Link muss mit http:// oder https:// beginnen.", "error")
+        return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
     if not title or not description or not starting_price:
         flash("Alle Felder sind erforderlich.", "error")
@@ -121,10 +130,10 @@ def create_auction():
     if 'photos' in request.files:
         files = request.files.getlist('photos')
         for file in files:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(UPLOAD_FOLDER, filename)
-                file.save(filepath)
+            if file and allowed_file(file):
+                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+                filename = f"{uuid.uuid4().hex}.{ext}"  # UUID → no collisions, no path traversal
+                file.save(os.path.join(UPLOAD_FOLDER, filename))
                 photos.append(f"images/uploads/{filename}")
 
     try:
@@ -154,69 +163,18 @@ def create_auction():
 
     return redirect(url_for('user.seller_dashboard', email=current_user.email))
 
-@auction_bp.route('/<int:auction_id>', methods=['GET', 'POST'])
+@auction_bp.route('/<int:auction_id>', methods=['GET'])
 @login_required
 def auction_detail(auction_id):
     auction = Auction.query.get(auction_id)
-
     if not auction:
         flash("Auktion nicht gefunden.", 'error')
-        return redirect(url_for('auction.buyer_auctions'))
-
-    if request.method == 'POST':
-        try:
-            if auction.is_frozen():
-                return jsonify({
-                    "error": "Einstiege vorübergehend eingefroren. Jemand sieht den Preis ein.",
-                    "frozen": True,
-                    "seconds_left": auction.freeze_seconds_left()
-                }), 423
-
-            entry_price = auction.starting_price * 0.01  # Вхідна ціна (1% від початкової ціни)
-            participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
-
-            if participant and participant.has_paid_entry:
-                return jsonify({"error": "Sie haben für diese Auktion bereits bezahlt"}), 400
-
-            if current_user.balance < entry_price:
-                return jsonify({"error": "Nicht genügend Guthaben"}), 400
-
-            buyer = User.query.get(current_user.id)
-
-            # Транзакція участі
-            buyer.deduct_balance(entry_price)
-
-            auction.total_participants += 1
-            auction.current_price -= entry_price
-
-            if auction.current_price <= 0:
-                auction.current_price = 0
-                auction.is_active = False  # Закриваємо аукціон
-
-            if not participant:
-                participant = AuctionParticipant(auction_id=auction_id, user_id=current_user.id)
-                db.session.add(participant)
-
-            participant.mark_paid_entry()
-            auction.freeze()  # Заморожуємо нові входи на 5 сек
-
-            db.session.commit()
-
-            return jsonify({
-                "message": "Erfolgreich an der Auktion teilgenommen",
-                "participants": auction.total_participants,
-                "final_price": auction.current_price
-            }), 200
-
-        except Exception as e:
-            db.session.rollback()
-            print(f"Fehler bei der Auktionsteilnahme: {e}")
-            return jsonify({"error": "Teilnahme an der Auktion fehlgeschlagen"}), 500
-
+        return redirect(url_for('main.index'))
     return render_template('auctions/auction_detail.html', auction=auction)
 
 @auction_bp.route('/view/<int:auction_id>', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def view_auction(auction_id):
     auction = Auction.query.get(auction_id)
     if not auction:
@@ -265,59 +223,3 @@ def view_auction(auction_id):
         return jsonify({"error": "Einsicht konnte nicht aktualisiert werden"}), 500
 
 
-@auction_bp.route('/close/<int:auction_id>', methods=['POST'])
-@login_required
-def close_auction(auction_id):
-    auction = Auction.query.get(auction_id)
-
-    if not auction:
-        flash("Auktion nicht gefunden.", "error")
-        return redirect(url_for('user.seller_dashboard', email=current_user.email))
-
-    if not auction.is_active:
-        flash("Diese Auktion ist bereits beendet.", "info")
-        return redirect(url_for('user.seller_dashboard', email=current_user.email))
-
-    # Перевірка, чи користувач є учасником аукціону
-    participant = AuctionParticipant.query.filter_by(auction_id=auction_id, user_id=current_user.id).first()
-    if not participant or not participant.has_paid_entry:
-        flash("Sie können die Auktion nicht abschließen, da Sie nicht teilgenommen haben.", "error")
-        return redirect(url_for('user.seller_dashboard', email=current_user.email))
-
-    # Перевірка, чи у користувача достатньо коштів
-    if current_user.balance < auction.current_price:
-        flash("Nicht genügend Guthaben zum Abschluss der Auktion.", "error")
-        return redirect(url_for('user.seller_dashboard', email=current_user.email))
-
-    try:
-        buyer = current_user
-        seller = User.query.get(auction.seller_id)
-
-        # Списання коштів з балансу покупця
-        buyer.deduct_balance(auction.current_price)
-
-        # Додавання коштів на баланс продавця
-        total_entry_payments = auction.total_participants * auction.starting_price * 0.01
-        total_revenue = total_entry_payments + auction.current_price
-        seller.add_balance(total_revenue)
-
-        # Закриття аукціону
-        auction.is_active = False
-        auction.winner_id = buyer.id
-        auction.total_earnings = total_revenue
-        db.session.commit()
-
-        # Відображення повідомлень
-        if current_user.user_type == "seller":
-            flash(f"Ihre Ware wurde verkauft. Käufer: {buyer.username}, E-Mail: {buyer.email}.", "info")
-            return redirect(url_for('user.seller_dashboard', email=current_user.email))
-
-        if current_user.user_type == "buyer":
-            flash(f"Sie haben die Auktion gewonnen! Verkäufer: {seller.username}, E-Mail: {seller.email}.", "info")
-            return redirect(url_for('user.buyer_dashboard', email=current_user.email))
-
-    except Exception as e:
-        db.session.rollback()
-        print(f"Fehler beim Abschluss der Auktion: {e}")
-        flash("Auktion konnte nicht abgeschlossen werden. Bitte später erneut versuchen.", "error")
-        return redirect(url_for('user.seller_dashboard', email=current_user.email))

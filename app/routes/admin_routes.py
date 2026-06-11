@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, Response, request
+from flask import Blueprint, render_template, Response, request, current_app
 from flask_login import login_required, current_user
 from datetime import datetime
 import csv
@@ -19,6 +19,8 @@ def dac7_export():
     """DAC7/PStTG — CSV-Export der meldepflichtigen Verkäufer für ein Jahr."""
     if not current_user.is_admin:
         return "Zugriff verweigert", 403
+
+    current_app.logger.info(f"DAC7 export requested by admin user_id={current_user.id} ip={request.remote_addr}")
 
     try:
         year = int(request.args.get('year', datetime.utcnow().year))
